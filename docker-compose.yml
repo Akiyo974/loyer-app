@@ -1,0 +1,36 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: loyer_postgres
+    environment:
+      POSTGRES_USER: loyer_user
+      POSTGRES_PASSWORD: loyer_pass
+      POSTGRES_DB: loyer_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U loyer_user -d loyer_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: loyer_app
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://loyer_user:loyer_pass@postgres:5432/loyer_db?schema=public
+      AUTH_SECRET: ${AUTH_SECRET:-change-me-in-production-at-least-32-chars}
+      NEXTAUTH_URL: http://localhost:3000
+    ports:
+      - "3000:3000"
+    restart: unless-stopped
+
+volumes:
+  postgres_data:

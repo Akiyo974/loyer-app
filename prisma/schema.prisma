@@ -1,0 +1,181 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// ---- Auth (NextAuth v5 / Auth.js) ----
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  image         String?
+  password      String? // hashed with bcrypt
+
+  accounts Account[]
+  sessions Session[]
+
+  householdMember HouseholdMember?
+  paychecks       Paycheck[]
+  deposits        Deposit[]
+  expenses        Expense[]        @relation("PaidByExpenses")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// ---- Household (couple) ----
+model Household {
+  id   String @id @default(cuid())
+  name String @default("Notre foyer")
+
+  members  HouseholdMember[]
+  months   Month[]
+  expenses Expense[]
+  deposits Deposit[]
+  paychecks Paycheck[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model HouseholdMember {
+  id          String @id @default(cuid())
+  householdId String
+  userId      String @unique
+  role        String @default("MEMBER")
+  displayName String // Ex: "Marie", "Jean"
+  savingsGoal Float  @default(0) // objectif d'épargne mensuel
+
+  household Household @relation(fields: [householdId], references: [id], onDelete: Cascade)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([householdId])
+}
+
+// ---- Month (période d'analyse) ----
+model Month {
+  id          String @id @default(cuid())
+  householdId String
+  year        Int
+  month       Int // 1-12
+
+  household Household @relation(fields: [householdId], references: [id], onDelete: Cascade)
+  expenses  Expense[]
+  deposits  Deposit[]
+
+  createdAt DateTime @default(now())
+
+  @@unique([householdId, year, month])
+  @@index([householdId, year, month])
+}
+
+// ---- Paychecks ----
+model Paycheck {
+  id                String   @id @default(cuid())
+  householdId       String
+  userId            String
+  date              DateTime // date de la paie
+  grossAmount       Float
+  vacationDeduction Float    @default(0)
+  netAmount         Float    // calculé = gross - vacationDeduction
+  notes             String?
+
+  household Household @relation(fields: [householdId], references: [id], onDelete: Cascade)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([householdId, userId, date])
+}
+
+// ---- Expenses (dépenses foyer) ----
+model Expense {
+  id          String      @id @default(cuid())
+  householdId String
+  monthId     String
+  category    String
+  label       String
+  amount      Float
+  type        String
+  paidById    String? // userId optionnel
+  notes       String?
+  isTemplate  Boolean     @default(false) // pour les postes fixes récurrents
+
+  household Household @relation(fields: [householdId], references: [id], onDelete: Cascade)
+  month     Month     @relation(fields: [monthId], references: [id], onDelete: Cascade)
+  paidBy    User?     @relation("PaidByExpenses", fields: [paidById], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([householdId, monthId])
+}
+
+// ---- Deposits (dépôts sur compte conjoint) ----
+model Deposit {
+  id          String   @id @default(cuid())
+  householdId String
+  monthId     String
+  userId      String
+  date        DateTime
+  amount      Float
+  notes       String?
+
+  household Household @relation(fields: [householdId], references: [id], onDelete: Cascade)
+  month     Month     @relation(fields: [monthId], references: [id], onDelete: Cascade)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([householdId, monthId, userId])
+}
