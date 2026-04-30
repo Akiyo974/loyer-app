@@ -8,3 +8,6 @@ coverage/
 playwright-report/
 test-results/
 postgres_data/
+
+prisma/*.db
+prisma/*.db-journal
