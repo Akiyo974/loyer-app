@@ -12,8 +12,9 @@ import { Badge } from "@/components/ui/badge";
 import { InviteSection } from "@/components/settings/invite-section";
 import { HouseholdNameForm } from "@/components/settings/household-name-form";
 import { ProfileForm } from "@/components/settings/profile-form";
+import { BudgetModeForm } from "@/components/settings/budget-mode-form";
 import { formatCurrency } from "@/lib/calc";
-import { User, Home, Users, PiggyBank } from "lucide-react";
+import { User, Home, Users, PiggyBank, Wallet } from "lucide-react";
 
 export default async function SettingsPage() {
   const session = await auth();
@@ -137,6 +138,22 @@ export default async function SettingsPage() {
               savingsGoal={member.savingsGoal ?? 0}
             />
           </div>
+        </CardContent>
+      </Card>
+
+      {/* Mode de budgétisation */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Wallet className="h-5 w-5" />
+            Mode de budgétisation
+          </CardTitle>
+          <CardDescription>
+            Choisissez comment les revenus sont associés aux dépenses du foyer.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <BudgetModeForm currentMode={(household.budgetMode ?? "CURRENT") as "CURRENT" | "SHIFTED"} />
         </CardContent>
       </Card>
     </div>

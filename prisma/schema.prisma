@@ -70,8 +70,9 @@ model VerificationToken {
 
 // ---- Household (couple) ----
 model Household {
-  id   String @id @default(cuid())
-  name String @default("Notre foyer")
+  id         String @id @default(cuid())
+  name       String @default("Notre foyer")
+  budgetMode String @default("CURRENT") // "CURRENT" ou "SHIFTED" (revenus mois précédent)
 
   members  HouseholdMember[]
   months   Month[]

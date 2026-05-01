@@ -125,3 +125,27 @@ export async function updatePassword(
 
   return { success: true, data: undefined };
 }
+
+/**
+ * Change le mode de budgétisation du foyer.
+ * "CURRENT"  → revenus et dépenses du même mois (mode classique)
+ * "SHIFTED"  → les dépenses du mois N sont financées par les revenus du mois N-1
+ */
+export async function updateBudgetMode(
+  mode: "CURRENT" | "SHIFTED"
+): Promise<ActionResult> {
+  const { householdId } = await requireHouseholdMember();
+
+  if (mode !== "CURRENT" && mode !== "SHIFTED") {
+    return { success: false, error: "Mode invalide." };
+  }
+
+  await prisma.household.update({
+    where: { id: householdId },
+    data: { budgetMode: mode },
+  });
+
+  revalidatePath("/settings");
+  revalidatePath("/month/[slug]", "page");
+  return { success: true, data: undefined };
+}

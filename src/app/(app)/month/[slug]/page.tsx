@@ -6,7 +6,7 @@ import { formatCurrency, formatPercent } from "@/lib/calc";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { AlertTriangle, ChevronLeft, ChevronRight } from "lucide-react";
+import { AlertTriangle, ChevronLeft, ChevronRight, ArrowLeftRight } from "lucide-react";
 import { PaychecksTab } from "@/components/month/paychecks-tab";
 import { ExpensesTab } from "@/components/month/expenses-tab";
 import { DepositsTab } from "@/components/month/deposits-tab";
@@ -34,7 +34,7 @@ export default async function MonthPage({ params, searchParams }: MonthPageProps
     redirect("/dashboard");
   }
 
-  const { year, month, warning } = monthData;
+  const { year, month, warning, budgetMode, incomeSlug } = monthData;
   const monthLabel = formatMonthLabel(year, month);
 
   return (
@@ -66,6 +66,19 @@ export default async function MonthPage({ params, searchParams }: MonthPageProps
         <Alert variant="warning">
           <AlertTriangle className="h-4 w-4" />
           <AlertDescription>{warning}</AlertDescription>
+        </Alert>
+      )}
+
+      {budgetMode === "SHIFTED" && (
+        <Alert>
+          <ArrowLeftRight className="h-4 w-4" />
+          <AlertDescription>
+            <strong>Mode décalé (enveloppe) :</strong> les calculs de partage utilisent les revenus de{" "}
+            <Link href={`/month/${incomeSlug}`} className="underline font-medium">
+              {formatMonthLabel(...incomeSlug.split("-").map(Number) as [number, number])}
+            </Link>
+            .
+          </AlertDescription>
         </Alert>
       )}
 

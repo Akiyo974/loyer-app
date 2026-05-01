@@ -2,7 +2,7 @@
 
 import { prisma } from "@/lib/prisma";
 import { requireHouseholdMember, getOrCreateMonth } from "@/actions/helpers";
-import { parseMonthSlug } from "@/lib/utils";
+import { parseMonthSlug, prevMonthSlug } from "@/lib/utils";
 import { computeMonthSummary, computePaymentBalance } from "@/lib/calc";
 import { toNumber } from "@/lib/types";
 import type { MonthData } from "@/lib/types";
@@ -21,6 +21,13 @@ export async function getMonthData(monthSlug: string): Promise<MonthData> {
     throw new Error("Slug de mois invalide.");
   }
 
+  // Récupérer le foyer pour connaître le mode de budgétisation
+  const household = await prisma.household.findUnique({
+    where: { id: householdId },
+    select: { budgetMode: true },
+  });
+  const budgetMode = (household?.budgetMode ?? "CURRENT") as "CURRENT" | "SHIFTED";
+
   // Récupérer tous les membres du foyer
   const members = await prisma.householdMember.findMany({
     where: { householdId },
@@ -31,17 +38,33 @@ export async function getMonthData(monthSlug: string): Promise<MonthData> {
   // Récupérer ou créer le mois
   const monthRecord = await getOrCreateMonth(householdId, year, month);
 
-  // Paychecks : tous les membres, filtrés sur le mois civil
-  const startDate = new Date(year, month - 1, 1);
-  const endDate = new Date(year, month, 0); // dernier jour du mois
+  // En mode SHIFTED, les revenus utilisés pour ce mois sont ceux du mois précédent
+  const incomeSlug = budgetMode === "SHIFTED" ? prevMonthSlug(monthSlug) : monthSlug;
+  const { year: incomeYear, month: incomeMonth } = parseMonthSlug(incomeSlug);
+
+  const incomeStartDate = new Date(incomeYear, incomeMonth - 1, 1);
+  const incomeEndDate = new Date(incomeYear, incomeMonth, 0);
 
   const paychecks = await prisma.paycheck.findMany({
     where: {
       householdId,
-      date: { gte: startDate, lte: endDate },
+      date: { gte: incomeStartDate, lte: incomeEndDate },
     },
     orderBy: [{ userId: "asc" }, { date: "asc" }],
   });
+
+  // Paychecks affichés dans l'onglet (toujours ceux du mois courant)
+  const currentStartDate = new Date(year, month - 1, 1);
+  const currentEndDate = new Date(year, month, 0);
+  const currentPaychecks = budgetMode === "SHIFTED"
+    ? await prisma.paycheck.findMany({
+        where: {
+          householdId,
+          date: { gte: currentStartDate, lte: currentEndDate },
+        },
+        orderBy: [{ userId: "asc" }, { date: "asc" }],
+      })
+    : paychecks;
 
   // Dépenses du mois
   const expenses = await prisma.expense.findMany({
@@ -102,8 +125,10 @@ export async function getMonthData(monthSlug: string): Promise<MonthData> {
     year,
     month,
     monthId: monthRecord.id,
+    budgetMode,
+    incomeSlug,
     members: memberInfos,
-    paychecks: paychecks.map((p) => ({
+    paychecks: currentPaychecks.map((p) => ({
       id: p.id,
       userId: p.userId,
       displayName:

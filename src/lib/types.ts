@@ -70,6 +70,8 @@ export interface MonthData {
   year: number;
   month: number;
   monthId: string | null;
+  budgetMode: "CURRENT" | "SHIFTED";
+  incomeSlug: string;  // slug du mois dont les revenus sont utilisés
   members: MemberInfo[];
   paychecks: PaycheckRow[];
   expenses: ExpenseRow[];
