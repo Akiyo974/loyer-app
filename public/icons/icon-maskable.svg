@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Fond plein anthracite (maskable = fond couvre tout) -->
+  <rect width="512" height="512" fill="#18181b"/>
+  <!-- Toit (réduit pour la safe zone maskable ~80%) -->
+  <polygon points="256,116 404,252 108,252" fill="#f4f4f5"/>
+  <!-- Corps -->
+  <rect x="148" y="252" width="216" height="152" fill="#f4f4f5"/>
+  <!-- Fenêtre gauche -->
+  <rect x="168" y="280" width="50" height="46" rx="7" fill="#18181b"/>
+  <!-- Fenêtre droite -->
+  <rect x="294" y="280" width="50" height="46" rx="7" fill="#18181b"/>
+  <!-- Porte -->
+  <rect x="222" y="324" width="68" height="80" rx="34" fill="#18181b"/>
+</svg>

@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Fond arrondi anthracite -->
+  <rect width="512" height="512" rx="96" fill="#18181b"/>
+  <!-- Toit -->
+  <polygon points="256,88 432,264 80,264" fill="#f4f4f5"/>
+  <!-- Corps -->
+  <rect x="136" y="264" width="240" height="168" fill="#f4f4f5"/>
+  <!-- Fenêtre gauche -->
+  <rect x="158" y="296" width="56" height="52" rx="8" fill="#18181b"/>
+  <!-- Fenêtre droite -->
+  <rect x="298" y="296" width="56" height="52" rx="8" fill="#18181b"/>
+  <!-- Porte -->
+  <rect x="220" y="340" width="72" height="92" rx="36" fill="#18181b"/>
+</svg>
