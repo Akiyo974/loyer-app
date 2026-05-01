@@ -41,7 +41,7 @@ async function main() {
 
   // Ajouter les membres
   await prisma.householdMember.upsert({
-    where: { userId: userA.id },
+    where: { householdId_userId: { householdId: household.id, userId: userA.id } },
     update: {},
     create: {
       householdId: household.id,
@@ -52,7 +52,7 @@ async function main() {
   });
 
   await prisma.householdMember.upsert({
-    where: { userId: userB.id },
+    where: { householdId_userId: { householdId: household.id, userId: userB.id } },
     update: {},
     create: {
       householdId: household.id,
