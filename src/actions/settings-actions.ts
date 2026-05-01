@@ -45,8 +45,7 @@ export async function updateHouseholdName(
 export async function updateDisplayName(
   displayName: string
 ): Promise<ActionResult> {
-  const session = await auth();
-  if (!session?.user?.id) return { success: false, error: "Non authentifié." };
+  const { householdId, userId } = await requireHouseholdMember();
 
   const trimmed = displayName.trim();
   if (trimmed.length < 1 || trimmed.length > 50) {
@@ -54,7 +53,7 @@ export async function updateDisplayName(
   }
 
   await prisma.householdMember.update({
-    where: { userId: session.user.id },
+    where: { householdId_userId: { householdId, userId } },
     data: { displayName: trimmed },
   });
 
@@ -70,15 +69,14 @@ export async function updateDisplayName(
 export async function updateSavingsGoal(
   goal: number
 ): Promise<ActionResult> {
-  const session = await auth();
-  if (!session?.user?.id) return { success: false, error: "Non authentifié." };
+  const { householdId, userId } = await requireHouseholdMember();
 
   if (isNaN(goal) || goal < 0 || goal > 99999) {
     return { success: false, error: "Montant invalide (0 – 99 999 $)." };
   }
 
   await prisma.householdMember.update({
-    where: { userId: session.user.id },
+    where: { householdId_userId: { householdId, userId } },
     data: { savingsGoal: goal },
   });
 
