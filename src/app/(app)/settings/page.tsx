@@ -15,13 +15,18 @@ import { ProfileForm } from "@/components/settings/profile-form";
 import { BudgetModeForm } from "@/components/settings/budget-mode-form";
 import { formatCurrency } from "@/lib/calc";
 import { User, Home, Users, PiggyBank, Wallet } from "lucide-react";
+import { getActiveHouseholdId } from "@/lib/active-household";
 
 export default async function SettingsPage() {
   const session = await auth();
   if (!session?.user?.id) redirect("/login");
 
-  const member = await prisma.householdMember.findUnique({
-    where: { userId: session.user.id },
+  const userId = session.user.id;
+  const householdId = await getActiveHouseholdId(userId);
+  if (!householdId) redirect("/onboarding");
+
+  const member = await prisma.householdMember.findFirst({
+    where: { householdId, userId },
     include: {
       household: {
         include: {

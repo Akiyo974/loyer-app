@@ -10,11 +10,14 @@
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
+import { getActiveHouseholdId } from "@/lib/active-household";
 
 /**
- * Retourne la session + le membre du foyer courant.
+ * Retourne la session + le membre du foyer actif.
+ * Le foyer actif est lu depuis le cookie "active-household" ;
+ * si absent ou invalide, le premier foyer de l'utilisateur est utilisé.
  * Redirige vers /login si non authentifié.
- * Redirige vers /onboarding si pas encore dans un foyer.
+ * Redirige vers /onboarding si l'utilisateur n'appartient à aucun foyer.
  */
 export async function requireHouseholdMember() {
   const session = await auth();
@@ -22,8 +25,15 @@ export async function requireHouseholdMember() {
     redirect("/login");
   }
 
+  const userId = session.user.id;
+  const householdId = await getActiveHouseholdId(userId);
+
+  if (!householdId) {
+    redirect("/onboarding");
+  }
+
   const member = await prisma.householdMember.findUnique({
-    where: { userId: session.user.id },
+    where: { householdId_userId: { householdId, userId } },
     include: { household: true },
   });
 
@@ -31,7 +41,7 @@ export async function requireHouseholdMember() {
     redirect("/onboarding");
   }
 
-  return { session, member, householdId: member.householdId, userId: session.user.id };
+  return { session, member, householdId, userId };
 }
 
 /**

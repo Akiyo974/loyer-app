@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { Navbar } from "@/components/layout/navbar";
 import { currentMonthSlug } from "@/lib/utils";
+import { getActiveHouseholdId } from "@/lib/active-household";
 
 export default async function AppLayout({ children }: { children: ReactNode }) {
   const session = await auth();
@@ -11,22 +12,29 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
     redirect("/login");
   }
 
-  // Vérifier appartenance à un foyer
-  const member = await prisma.householdMember.findUnique({
-    where: { userId: session.user.id },
-    include: { household: true },
+  const userId = session.user.id;
+
+  // Charger tous les foyers de l'utilisateur
+  const memberships = await prisma.householdMember.findMany({
+    where: { userId },
+    include: { household: { select: { id: true, name: true } } },
+    orderBy: { createdAt: "asc" },
   });
 
-  if (!member) {
+  if (memberships.length === 0) {
     redirect("/onboarding");
   }
+
+  const activeHouseholdId = (await getActiveHouseholdId(userId)) ?? memberships[0].household.id;
+
+  const households = memberships.map((m) => ({ id: m.household.id, name: m.household.name }));
 
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar
         userName={session.user.name ?? session.user.email ?? "Utilisateur"}
-        householdName={member.household.name}
-        householdId={member.household.id}
+        households={households}
+        activeHouseholdId={activeHouseholdId}
         currentMonthSlug={currentMonthSlug()}
       />
       <main className="container mx-auto px-4 py-8 max-w-6xl">{children}</main>

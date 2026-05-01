@@ -1,4 +1,4 @@
-# Loyer — Gestion des dépenses en couple
+# Loyer — Gestion de budget en foyer partagé
 
 Application web pour répartir **équitablement** (au prorata des revenus nets) les dépenses d'un foyer partagé.
 

@@ -3,27 +3,33 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { signOut } from "next-auth/react";
-import { Home, Settings, LogOut, Menu, X } from "lucide-react";
+import { LogOut, Menu, X } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { HouseholdSelector } from "./household-selector";
+
+interface HouseholdOption {
+  id: string;
+  name: string;
+}
 
 interface NavbarProps {
   userName: string;
-  householdName: string;
-  householdId: string;
+  households: HouseholdOption[];
+  activeHouseholdId: string;
   currentMonthSlug: string;
 }
 
-export function Navbar({ userName, householdName, householdId, currentMonthSlug: monthSlug }: NavbarProps) {
+export function Navbar({ userName, households, activeHouseholdId, currentMonthSlug: monthSlug }: NavbarProps) {
   const pathname = usePathname();
   const router = useRouter();
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const navLinks = [
-    { href: "/dashboard", label: "Tableau de bord", icon: Home },
-    { href: `/month/${monthSlug}`, label: "Mois en cours", icon: null },
-    { href: "/settings", label: "Paramètres", icon: Settings },
+    { href: "/dashboard", label: "Tableau de bord" },
+    { href: `/month/${monthSlug}`, label: "Mois en cours" },
+    { href: "/settings", label: "Paramètres" },
   ];
 
   async function handleLogout() {
@@ -34,16 +40,8 @@ export function Navbar({ userName, householdName, householdId, currentMonthSlug:
     <header className="bg-white border-b border-gray-200 sticky top-0 z-40">
       <div className="container mx-auto px-4 max-w-6xl">
         <div className="flex h-16 items-center justify-between">
-          {/* Logo + Household name */}
-          <div className="flex items-center gap-3">
-            <div className="p-1.5 bg-primary/10 rounded-md">
-              <Home className="h-5 w-5 text-primary" />
-            </div>
-            <div>
-              <p className="font-semibold text-sm leading-none">{householdName}</p>
-              <p className="text-xs text-muted-foreground leading-none mt-0.5">Foyer partagé</p>
-            </div>
-          </div>
+          {/* Sélecteur de foyer */}
+          <HouseholdSelector households={households} activeHouseholdId={activeHouseholdId} />
 
           {/* Desktop nav */}
           <nav className="hidden md:flex items-center gap-1">

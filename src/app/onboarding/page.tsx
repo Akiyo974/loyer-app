@@ -11,7 +11,7 @@ export default async function OnboardingPage() {
   if (!session?.user?.id) redirect("/login");
 
   // Si déjà dans un foyer, aller au dashboard
-  const existing = await prisma.householdMember.findUnique({
+  const existing = await prisma.householdMember.findFirst({
     where: { userId: session.user.id },
   });
   if (existing) redirect("/dashboard");

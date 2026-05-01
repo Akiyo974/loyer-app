@@ -23,8 +23,8 @@ model User {
   accounts Account[]
   sessions Session[]
 
-  householdMember HouseholdMember?
-  paychecks       Paycheck[]
+  householdMembers HouseholdMember[]
+  paychecks        Paycheck[]
   deposits        Deposit[]
   expenses        Expense[]        @relation("PaidByExpenses")
 
@@ -87,7 +87,7 @@ model Household {
 model HouseholdMember {
   id          String @id @default(cuid())
   householdId String
-  userId      String @unique
+  userId      String
   role        String @default("MEMBER")
   displayName String // Ex: "Marie", "Jean"
   savingsGoal Float  @default(0) // objectif d'épargne mensuel
@@ -98,6 +98,7 @@ model HouseholdMember {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  @@unique([householdId, userId])
   @@index([householdId])
 }
 
