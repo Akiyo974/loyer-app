@@ -27,6 +27,7 @@ model User {
   paychecks        Paycheck[]
   deposits        Deposit[]
   expenses        Expense[]        @relation("PaidByExpenses")
+  reelRecipes     ReelRecipe[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -79,6 +80,7 @@ model Household {
   expenses Expense[]
   deposits Deposit[]
   paychecks Paycheck[]
+  reelRecipes ReelRecipe[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -180,4 +182,27 @@ model Deposit {
   updatedAt DateTime @updatedAt
 
   @@index([householdId, monthId, userId])
+}
+
+// ---- Reel Recipes ----
+model ReelRecipe {
+  id            String   @id @default(cuid())
+  householdId   String
+  createdById   String
+  reelUrl       String
+  lastNotes     String?
+  recipeTitle   String?
+  recipeJson    Json?
+  thumbnailPath String?
+  lastStatus    String   @default("success")
+  hitCount      Int      @default(1)
+
+  household Household @relation(fields: [householdId], references: [id], onDelete: Cascade)
+  createdBy User      @relation(fields: [createdById], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([householdId, reelUrl])
+  @@index([householdId, updatedAt])
 }

@@ -2,6 +2,20 @@
 
 Application web pour répartir **équitablement** (au prorata des revenus nets) les dépenses d'un foyer partagé.
 
+## Module Recettes Reel
+
+Un module annexe est disponible dans l'application via `/recipes` :
+
+- Collez un lien Instagram Reel.
+- Le backend tente une capture Playwright (miniature + métadonnées publiques).
+- OpenAI génère une recette structurée en JSON strict.
+- Le résultat est enregistré en base et affiché en galerie type Pinterest.
+
+Variables requises :
+
+- `OPENAI_API_KEY`
+- `OPENAI_MODEL` (optionnel, défaut `gpt-4o-mini`)
+
 ## Stack
 
 | Couche | Techno |
@@ -86,6 +100,7 @@ src/
 │   ├── (app)/                   # Layout protégé (middleware)
 │   │   ├── dashboard/
 │   │   ├── month/[slug]/        # slug = YYYY-MM
+│   │   ├── recipes/             # Galerie recettes Reel + ajout
 │   │   └── settings/
 │   └── onboarding/
 ├── components/

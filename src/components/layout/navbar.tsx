@@ -29,6 +29,7 @@ export function Navbar({ userName, households, activeHouseholdId, currentMonthSl
   const navLinks = [
     { href: "/dashboard", label: "Tableau de bord" },
     { href: `/month/${monthSlug}`, label: "Mois en cours" },
+    { href: "/recipes", label: "Recettes" },
     { href: "/settings", label: "Paramètres" },
   ];
 
