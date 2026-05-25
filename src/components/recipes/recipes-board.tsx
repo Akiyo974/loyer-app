@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
@@ -132,7 +132,7 @@ export function RecipesBoard() {
       });
       const data = await response.json();
       if (!response.ok) {
-        throw new Error(data?.error || "Génération impossible");
+        throw new Error(data?.error || "GÃ©nÃ©ration impossible");
       }
 
       setForm({ reelUrl: "", notes: "" });
@@ -157,7 +157,7 @@ export function RecipesBoard() {
         setSelected(newItem);
       }
     } catch (e) {
-      const message = e instanceof Error ? e.message : "Erreur lors de la génération";
+      const message = e instanceof Error ? e.message : "Erreur lors de la gÃ©nÃ©ration";
       setError(message);
     } finally {
       setSubmitting(false);
@@ -178,7 +178,7 @@ export function RecipesBoard() {
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
             <Input
-              placeholder="Rechercher par titre, ingrédient, description…"
+              placeholder="Rechercher par titre, ingrÃ©dient, descriptionâ€¦"
               className="pl-9 pr-9"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
@@ -199,9 +199,9 @@ export function RecipesBoard() {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="recent">Plus récent</SelectItem>
-              <SelectItem value="popular">Plus utilisé</SelectItem>
-              <SelectItem value="alpha">A → Z</SelectItem>
+              <SelectItem value="recent">Plus rÃ©cent</SelectItem>
+              <SelectItem value="popular">Plus utilisÃ©</SelectItem>
+              <SelectItem value="alpha">A â†’ Z</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -210,15 +210,15 @@ export function RecipesBoard() {
       {loadingList ? (
         <div className="py-16 flex items-center justify-center text-muted-foreground">
           <Loader2 className="h-5 w-5 animate-spin mr-2" />
-          Chargement des recettes…
+          Chargement des recettesâ€¦
         </div>
       ) : items.length === 0 ? (
         <Card className="border-dashed">
           <CardContent className="py-14 text-center space-y-3">
             <ChefHat className="h-10 w-10 mx-auto text-muted-foreground" />
-            <p className="font-semibold text-base">Aucune recette enregistrée</p>
+            <p className="font-semibold text-base">Aucune recette enregistrÃ©e</p>
             <p className="text-sm text-muted-foreground max-w-xs mx-auto">
-              Appuyez sur le bouton <span className="font-medium">+</span> pour analyser un Reel Instagram et créer votre première fiche recette.
+              Appuyez sur le bouton <span className="font-medium">+</span> pour analyser un Reel Instagram et crÃ©er votre premiÃ¨re fiche recette.
             </p>
           </CardContent>
         </Card>
@@ -226,8 +226,8 @@ export function RecipesBoard() {
         <Card className="border-dashed">
           <CardContent className="py-14 text-center space-y-3">
             <Search className="h-10 w-10 mx-auto text-muted-foreground" />
-            <p className="font-semibold text-base">Aucun résultat</p>
-            <p className="text-sm text-muted-foreground">Aucune recette ne correspond à « {search} ».</p>
+            <p className="font-semibold text-base">Aucun rÃ©sultat</p>
+            <p className="text-sm text-muted-foreground">Aucune recette ne correspond Ã  Â« {search} Â».</p>
             <Button variant="outline" size="sm" onClick={() => setSearch("")}>
               Effacer la recherche
             </Button>
@@ -237,7 +237,7 @@ export function RecipesBoard() {
         <>
           <p className="text-xs text-muted-foreground">
             {filtered.length} recette{filtered.length > 1 ? "s" : ""}
-            {search ? ` pour « ${search} »` : ""}
+            {search ? ` pour Â« ${search} Â»` : ""}
           </p>
           <div className="columns-1 sm:columns-2 lg:columns-3 gap-4 [column-fill:_balance]">
             {filtered.map((item) => (
@@ -265,7 +265,7 @@ export function RecipesBoard() {
                     )}
                     {item.hitCount > 1 && (
                       <Badge className="absolute top-2 right-2 text-xs bg-black/60 text-white border-0">
-                        {item.hitCount}×
+                        {item.hitCount}Ã—
                       </Badge>
                     )}
                   </div>
@@ -305,7 +305,7 @@ export function RecipesBoard() {
         </>
       )}
 
-      {/* Dialog détail recette */}
+      {/* Dialog dÃ©tail recette */}
       <Dialog open={!!selected} onOpenChange={(open) => !open && setSelected(null)}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           {selected?.recipe ? (
@@ -323,7 +323,7 @@ export function RecipesBoard() {
                 </div>
                 <div className="rounded-lg border bg-muted/40 p-3 flex flex-col items-center gap-1 text-center">
                   <Clock3 className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-xs text-muted-foreground">Préparation</span>
+                  <span className="text-xs text-muted-foreground">PrÃ©paration</span>
                   <span className="font-medium text-xs">{selected.recipe.prepTime}</span>
                 </div>
                 <div className="rounded-lg border bg-muted/40 p-3 flex flex-col items-center gap-1 text-center">
@@ -337,7 +337,7 @@ export function RecipesBoard() {
 
               <div className="space-y-2">
                 <h3 className="font-semibold text-sm uppercase tracking-wide text-muted-foreground">
-                  Ingrédients
+                  IngrÃ©dients
                 </h3>
                 <ul className="space-y-1">
                   {selected.recipe.ingredients.map((line, idx) => (
@@ -353,7 +353,7 @@ export function RecipesBoard() {
 
               <div className="space-y-2">
                 <h3 className="font-semibold text-sm uppercase tracking-wide text-muted-foreground">
-                  Étapes
+                  Ã‰tapes
                 </h3>
                 <ol className="space-y-3">
                   {selected.recipe.steps.map((line, idx) => (
@@ -372,7 +372,7 @@ export function RecipesBoard() {
                   <hr className="border-t" />
                   <div className="space-y-2">
                     <h3 className="font-semibold text-sm uppercase tracking-wide text-muted-foreground">
-                      💡 Astuces
+                      ðŸ’¡ Astuces
                     </h3>
                     <ul className="space-y-1">
                       {selected.recipe.tips.map((line, idx) => (
@@ -395,7 +395,7 @@ export function RecipesBoard() {
             </div>
           ) : (
             <div className="py-8 text-center text-muted-foreground">
-              Cette entrée ne contient pas de recette exploitable.
+              Cette entrÃ©e ne contient pas de recette exploitable.
             </div>
           )}
         </DialogContent>
@@ -417,10 +417,10 @@ export function RecipesBoard() {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Sparkles className="h-5 w-5" />
-              Générer une recette depuis un Reel
+              GÃ©nÃ©rer une recette depuis un Reel
             </DialogTitle>
             <DialogDescription>
-              Collez un lien Instagram Reel. Ajoutez des notes si la recette n'est pas détectée automatiquement.
+              Collez un lien Instagram Reel. Ajoutez des notes si la recette n'est pas dÃ©tectÃ©e automatiquement.
             </DialogDescription>
           </DialogHeader>
 
@@ -429,12 +429,12 @@ export function RecipesBoard() {
               <Label htmlFor="reel-url">Lien Reel Instagram</Label>
               <Input
                 id="reel-url"
-                placeholder="https://www.instagram.com/reel/…"
+                placeholder="https://www.instagram.com/reel/â€¦"
                 value={form.reelUrl}
                 onChange={(e) => setForm((prev) => ({ ...prev, reelUrl: e.target.value }))}
               />
               {form.reelUrl && !form.reelUrl.includes("instagram.com/reel/") && (
-                <p className="text-xs text-red-500">Ce lien ne semble pas être un Reel Instagram.</p>
+                <p className="text-xs text-red-500">Ce lien ne semble pas Ãªtre un Reel Instagram.</p>
               )}
             </div>
 
@@ -445,7 +445,7 @@ export function RecipesBoard() {
               <Textarea
                 id="reel-notes"
                 rows={3}
-                placeholder="Ex : Pâtes carbonara — lardons, œufs, parmesan. Ou précisez ce qui manque dans la recette générée."
+                placeholder="Ex : PÃ¢tes carbonara â€” lardons, Å“ufs, parmesan. Ou prÃ©cisez ce qui manque dans la recette gÃ©nÃ©rÃ©e."
                 value={form.notes}
                 onChange={(e) => setForm((prev) => ({ ...prev, notes: e.target.value }))}
               />
@@ -455,320 +455,13 @@ export function RecipesBoard() {
               {submitting ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Génération en cours…
+                  GÃ©nÃ©ration en coursâ€¦
                 </>
               ) : (
                 <>
                   <Sparkles className="h-4 w-4 mr-2" />
-                  Générer la recette
+                  GÃ©nÃ©rer la recette
                 </>
-              )}
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
-    </>
-  );
-}
-
-
-type RecipeData = {
-  title: string;
-  description: string;
-  servings: string;
-  prepTime: string;
-  cookTime: string;
-  ingredients: string[];
-  steps: string[];
-  tips: string[];
-  source: {
-    reelUrl: string;
-    notes: string;
-  };
-};
-
-type RecipeItem = {
-  id: string;
-  reelUrl: string;
-  notes?: string | null;
-  status: "success" | "error" | string;
-  hitCount: number;
-  recipeTitle?: string | null;
-  thumbnailUrl?: string | null;
-  recipe?: RecipeData | null;
-  createdAt: string;
-  updatedAt: string;
-};
-
-export function RecipesBoard() {
-  const [items, setItems] = useState<RecipeItem[]>([]);
-  const [loadingList, setLoadingList] = useState(true);
-  const [submitting, setSubmitting] = useState(false);
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [selected, setSelected] = useState<RecipeItem | null>(null);
-  const [error, setError] = useState<string>("");
-  const [form, setForm] = useState({ reelUrl: "", notes: "" });
-
-  async function loadItems() {
-    setLoadingList(true);
-    try {
-      const response = await fetch("/api/recipes?limit=50", { cache: "no-store" });
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data?.error || "Impossible de charger la galerie");
-      }
-      setItems(data.items || []);
-    } catch (e) {
-      const message = e instanceof Error ? e.message : "Erreur de chargement";
-      setError(message);
-    } finally {
-      setLoadingList(false);
-    }
-  }
-
-  useEffect(() => {
-    loadItems();
-  }, []);
-
-  const canSubmit = useMemo(() => {
-    return form.reelUrl.includes("instagram.com/reel/") && !submitting;
-  }, [form.reelUrl, submitting]);
-
-  async function handleGenerate() {
-    if (!canSubmit) return;
-
-    setSubmitting(true);
-    setError("");
-
-    try {
-      const response = await fetch("/api/recipes/generate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
-      });
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data?.error || "Generation impossible");
-      }
-
-      setForm({ reelUrl: "", notes: "" });
-      setDialogOpen(false);
-      await loadItems();
-
-      const newItem = (data?.id
-        ? {
-            id: data.id,
-            reelUrl: data.reelUrl,
-            status: "success",
-            hitCount: data.hitCount,
-            recipeTitle: data.recipeTitle,
-            recipe: data.recipe,
-            thumbnailUrl: data.thumbnailUrl,
-            createdAt: data.updatedAt,
-            updatedAt: data.updatedAt,
-          }
-        : null) as RecipeItem | null;
-
-      if (newItem) {
-        setSelected(newItem);
-      }
-    } catch (e) {
-      const message = e instanceof Error ? e.message : "Erreur lors de la generation";
-      setError(message);
-    } finally {
-      setSubmitting(false);
-    }
-  }
-
-  return (
-    <>
-      {error && (
-        <Card className="border-red-200 bg-red-50">
-          <CardContent className="pt-6 text-sm text-red-700">{error}</CardContent>
-        </Card>
-      )}
-
-      {loadingList ? (
-        <div className="py-16 flex items-center justify-center text-muted-foreground">
-          <Loader2 className="h-5 w-5 animate-spin mr-2" />
-          Chargement des recettes...
-        </div>
-      ) : items.length === 0 ? (
-        <Card className="border-dashed">
-          <CardContent className="py-14 text-center space-y-3">
-            <ChefHat className="h-8 w-8 mx-auto text-muted-foreground" />
-            <p className="font-medium">Aucune recette enregistree</p>
-            <p className="text-sm text-muted-foreground">
-              Utilisez le bouton + pour analyser un Reel Instagram et creer votre premiere fiche.
-            </p>
-          </CardContent>
-        </Card>
-      ) : (
-        <div className="columns-1 sm:columns-2 lg:columns-3 gap-4 [column-fill:_balance]">
-          {items.map((item) => (
-            <button
-              key={item.id}
-              type="button"
-              className="w-full mb-4 break-inside-avoid"
-              onClick={() => setSelected(item)}
-            >
-              <Card className="overflow-hidden text-left hover:shadow-lg transition-shadow">
-                <div className="relative w-full h-48 bg-muted">
-                  {item.thumbnailUrl ? (
-                    <Image
-                      src={item.thumbnailUrl}
-                      alt={item.recipeTitle || "Miniature recette"}
-                      fill
-                      className="object-cover"
-                      sizes="(max-width: 768px) 100vw, 33vw"
-                    />
-                  ) : (
-                    <div className="h-full w-full flex items-center justify-center text-muted-foreground text-sm">
-                      Sans miniature
-                    </div>
-                  )}
-                </div>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-base leading-snug">
-                    {item.recipeTitle || "Recette sans titre"}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="pt-0 text-xs text-muted-foreground flex items-center justify-between">
-                  <span>{item.hitCount} utilisation(s)</span>
-                  <span>{new Date(item.updatedAt).toLocaleDateString("fr-CA")}</span>
-                </CardContent>
-              </Card>
-            </button>
-          ))}
-        </div>
-      )}
-
-      <Dialog open={!!selected} onOpenChange={(open) => !open && setSelected(null)}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-          {selected?.recipe ? (
-            <div className="space-y-5">
-              <DialogHeader>
-                <DialogTitle className="text-2xl">{selected.recipe.title}</DialogTitle>
-                <DialogDescription>{selected.recipe.description}</DialogDescription>
-              </DialogHeader>
-
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm">
-                <Card>
-                  <CardContent className="pt-4 flex items-center gap-2">
-                    <Users className="h-4 w-4 text-muted-foreground" />
-                    {selected.recipe.servings}
-                  </CardContent>
-                </Card>
-                <Card>
-                  <CardContent className="pt-4 flex items-center gap-2">
-                    <Clock3 className="h-4 w-4 text-muted-foreground" />
-                    Prep: {selected.recipe.prepTime}
-                  </CardContent>
-                </Card>
-                <Card>
-                  <CardContent className="pt-4 flex items-center gap-2">
-                    <Clock3 className="h-4 w-4 text-muted-foreground" />
-                    Cuisson: {selected.recipe.cookTime}
-                  </CardContent>
-                </Card>
-              </div>
-
-              <div className="space-y-2">
-                <h3 className="font-semibold">Ingredients</h3>
-                <ul className="list-disc pl-5 space-y-1 text-sm">
-                  {selected.recipe.ingredients.map((line, idx) => (
-                    <li key={`${line}-${idx}`}>{line}</li>
-                  ))}
-                </ul>
-              </div>
-
-              <div className="space-y-2">
-                <h3 className="font-semibold">Etapes</h3>
-                <ol className="list-decimal pl-5 space-y-1 text-sm">
-                  {selected.recipe.steps.map((line, idx) => (
-                    <li key={`${line}-${idx}`}>{line}</li>
-                  ))}
-                </ol>
-              </div>
-
-              {selected.recipe.tips?.length > 0 && (
-                <div className="space-y-2">
-                  <h3 className="font-semibold">Astuces</h3>
-                  <ul className="list-disc pl-5 space-y-1 text-sm">
-                    {selected.recipe.tips.map((line, idx) => (
-                      <li key={`${line}-${idx}`}>{line}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-
-              <Button asChild variant="outline" className="w-full">
-                <a href={selected.reelUrl} target="_blank" rel="noreferrer">
-                  Ouvrir le Reel
-                  <ExternalLink className="h-4 w-4 ml-2" />
-                </a>
-              </Button>
-            </div>
-          ) : (
-            <div className="py-8 text-center text-muted-foreground">
-              Cette entree ne contient pas de recette exploitable.
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
-
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogTrigger asChild>
-          <Button
-            size="icon"
-            className="fixed bottom-6 right-6 h-14 w-14 rounded-full shadow-lg z-40"
-            aria-label="Ajouter une recette"
-          >
-            <Plus className="h-6 w-6" />
-          </Button>
-        </DialogTrigger>
-
-        <DialogContent className="max-w-lg">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Sparkles className="h-5 w-5" />
-              Generer une recette Reel
-            </DialogTitle>
-            <DialogDescription>
-              Collez un lien Instagram Reel. Ajoutez des notes si la recette n'est pas detectee automatiquement.
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="reel-url">Lien Reel Instagram</Label>
-              <Input
-                id="reel-url"
-                placeholder="https://www.instagram.com/reel/..."
-                value={form.reelUrl}
-                onChange={(e) => setForm((prev) => ({ ...prev, reelUrl: e.target.value }))}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="reel-notes">Notes <span className="text-muted-foreground">(optionnel)</span></Label>
-              <Textarea
-                id="reel-notes"
-                rows={3}
-                placeholder="Ex: Pates carbonara — lardons, oeufs, parmesan. Ou corrige ce qui manque dans la recette generee."
-                value={form.notes}
-                onChange={(e) => setForm((prev) => ({ ...prev, notes: e.target.value }))}
-              />
-            </div>
-
-            <Button className="w-full" onClick={handleGenerate} disabled={!canSubmit}>
-              {submitting ? (
-                <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Generation en cours...
-                </>
-              ) : (
-                "Generer la recette"
               )}
             </Button>
           </div>
