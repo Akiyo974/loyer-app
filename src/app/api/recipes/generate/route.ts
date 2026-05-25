@@ -144,7 +144,10 @@ export async function POST(request: Request) {
         {
           role: "system",
           content:
-            "Tu es un assistant culinaire. Reponds uniquement avec un JSON valide conforme au schema, sans texte additionnel.",
+            "Tu es un assistant culinaire expert. " +
+            "Reponds TOUJOURS en français, même si les informations source sont en anglais ou dans une autre langue. " +
+            "Tous les champs JSON (title, description, ingredients, steps, tips) doivent être rédigés en français. " +
+            "Reponds uniquement avec un JSON valide conforme au schema, sans texte additionnel.",
         },
         {
           role: "user",
@@ -152,11 +155,11 @@ export async function POST(request: Request) {
             {
               type: "text",
               text: [
-                "Reconstitue la recette a partir des informations ci-dessous.",
+                "Reconstitue la recette à partir des informations ci-dessous.",
                 "",
                 "IMPORTANT: Les notes de l'utilisateur sont la SOURCE PRINCIPALE.",
-                "Base-toi UNIQUEMENT sur ce que l'utilisateur a decrit. Ne devine pas un plat different.",
-                "Si les notes mentionnent des pates, fais une recette de pates.",
+                "Base-toi UNIQUEMENT sur ce que l'utilisateur a décrit. Ne devine pas un plat différent.",
+                "Si les notes mentionnent des pâtes, fais une recette de pâtes.",
                 "Si elles mentionnent du poulet, fais une recette de poulet. Etc.",
                 "",
                 `Notes utilisateur: ${notes || "(aucune)"}`,
@@ -164,8 +167,10 @@ export async function POST(request: Request) {
                 `OG title (caption Instagram): ${ogTitle}`,
                 `OG description: ${ogDescription}`,
                 "",
-                "Priorite: 1) Notes utilisateur 2) OG title/description 3) déduis depuis l'URL.",
-                "Si des quantites ou etapes manquent, propose des valeurs plausibles et signale-le dans les astuces.",
+                "Priorité: 1) Notes utilisateur 2) OG title/description 3) déduis depuis l'URL.",
+                "Si des quantités ou étapes manquent, propose des valeurs plausibles et signale-le dans les astuces.",
+                "",
+                "RAPPEL FINAL: Toute la réponse doit être en français (titre, description, ingrédients, étapes, astuces).",
               ].join("\n"),
             },
           ],
