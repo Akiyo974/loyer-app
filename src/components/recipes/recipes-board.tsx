@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
-import { Plus, Sparkles, Loader2, ExternalLink, Clock3, Users, ChefHat, Search, X } from "lucide-react";
+import { Plus, Sparkles, Loader2, ExternalLink, Clock3, Users, ChefHat, Search, X, Trash2, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -65,6 +65,11 @@ export function RecipesBoard() {
   const [form, setForm] = useState({ reelUrl: "", notes: "" });
   const [search, setSearch] = useState("");
   const [sort, setSort] = useState<SortOption>("recent");
+  const [editOpen, setEditOpen] = useState(false);
+  const [editNotes, setEditNotes] = useState("");
+  const [editSaving, setEditSaving] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   async function loadItems() {
     setLoadingList(true);
@@ -117,6 +122,51 @@ export function RecipesBoard() {
 
     return result;
   }, [items, search, sort]);
+
+  function openDetail(item: RecipeItem) {
+    setSelected(item);
+    setEditOpen(false);
+    setConfirmDelete(false);
+    setEditNotes(item.notes ?? "");
+  }
+
+  async function handleEditSave() {
+    if (!selected) return;
+    setEditSaving(true);
+    try {
+      const res = await fetch(`/api/recipes/${selected.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ notes: editNotes || null }),
+      });
+      if (!res.ok) throw new Error();
+      setItems((prev) =>
+        prev.map((it) => (it.id === selected.id ? { ...it, notes: editNotes || null } : it)),
+      );
+      setSelected((prev) => prev ? { ...prev, notes: editNotes || null } : null);
+      setEditOpen(false);
+    } catch {
+      /* silently fail — l'utilisateur peut réessayer */
+    } finally {
+      setEditSaving(false);
+    }
+  }
+
+  async function handleDelete() {
+    if (!selected) return;
+    setDeleting(true);
+    try {
+      const res = await fetch(`/api/recipes/${selected.id}`, { method: "DELETE" });
+      if (!res.ok) throw new Error();
+      setItems((prev) => prev.filter((it) => it.id !== selected.id));
+      setSelected(null);
+    } catch {
+      /* silently fail */
+    } finally {
+      setDeleting(false);
+      setConfirmDelete(false);
+    }
+  }
 
   async function handleGenerate() {
     if (!canSubmit) return;
@@ -245,7 +295,7 @@ export function RecipesBoard() {
                 key={item.id}
                 type="button"
                 className="w-full mb-4 break-inside-avoid"
-                onClick={() => setSelected(item)}
+                onClick={() => openDetail(item)}
               >
                 <Card className="overflow-hidden text-left hover:shadow-lg transition-shadow group">
                   <div className="relative w-full h-44 bg-muted">
@@ -306,7 +356,7 @@ export function RecipesBoard() {
       )}
 
       {/* Dialog détail recette */}
-      <Dialog open={!!selected} onOpenChange={(open) => !open && setSelected(null)}>
+      <Dialog open={!!selected} onOpenChange={(open) => { if (!open) { setSelected(null); setEditOpen(false); setConfirmDelete(false); } }}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           {selected?.recipe ? (
             <div className="space-y-5">
@@ -386,12 +436,69 @@ export function RecipesBoard() {
                 </>
               )}
 
-              <Button asChild variant="outline" className="w-full">
-                <a href={selected.reelUrl} target="_blank" rel="noreferrer">
-                  <ExternalLink className="h-4 w-4 mr-2" />
-                  Voir le Reel Instagram
-                </a>
-              </Button>
+              {/* Actions */}
+              <div className="flex gap-2 pt-2">
+                <Button asChild variant="outline" className="flex-1">
+                  <a href={selected.reelUrl} target="_blank" rel="noreferrer">
+                    <ExternalLink className="h-4 w-4 mr-2" />
+                    Voir le Reel
+                  </a>
+                </Button>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  title="Modifier les notes"
+                  onClick={() => { setEditOpen((v) => !v); setConfirmDelete(false); setEditNotes(selected.notes ?? ""); }}
+                >
+                  <Pencil className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  title="Supprimer la recette"
+                  className="text-red-500 hover:text-red-600 hover:border-red-300"
+                  onClick={() => { setConfirmDelete((v) => !v); setEditOpen(false); }}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
+
+              {/* Éditer les notes */}
+              {editOpen && (
+                <div className="space-y-2 border-t pt-4">
+                  <Label htmlFor="edit-notes">Notes</Label>
+                  <Textarea
+                    id="edit-notes"
+                    rows={3}
+                    value={editNotes}
+                    onChange={(e) => setEditNotes(e.target.value)}
+                    placeholder="Ajouter ou corriger des informations sur cette recette…"
+                  />
+                  <div className="flex gap-2">
+                    <Button size="sm" onClick={handleEditSave} disabled={editSaving}>
+                      {editSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : "Enregistrer"}
+                    </Button>
+                    <Button size="sm" variant="outline" onClick={() => setEditOpen(false)}>
+                      Annuler
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              {/* Confirmation de suppression */}
+              {confirmDelete && (
+                <div className="space-y-2 border-t pt-4">
+                  <p className="text-sm text-red-600 font-medium">Supprimer cette recette définitivement ?</p>
+                  <div className="flex gap-2">
+                    <Button size="sm" variant="destructive" onClick={handleDelete} disabled={deleting}>
+                      {deleting ? <Loader2 className="h-4 w-4 animate-spin" /> : "Oui, supprimer"}
+                    </Button>
+                    <Button size="sm" variant="outline" onClick={() => setConfirmDelete(false)}>
+                      Annuler
+                    </Button>
+                  </div>
+                </div>
+              )}
             </div>
           ) : (
             <div className="py-8 text-center text-muted-foreground">
