@@ -76,8 +76,8 @@ export function RecipesBoard() {
   }, []);
 
   const canSubmit = useMemo(() => {
-    return form.reelUrl.includes("instagram.com/reel/") && !submitting;
-  }, [form.reelUrl, submitting]);
+    return form.reelUrl.includes("instagram.com/reel/") && form.notes.trim().length >= 10 && !submitting;
+  }, [form.reelUrl, form.notes, submitting]);
 
   async function handleGenerate() {
     if (!canSubmit) return;
@@ -280,9 +280,13 @@ export function RecipesBoard() {
               Generer une recette Reel
             </DialogTitle>
             <DialogDescription>
-              Collez un lien Instagram Reel et ajoutez des notes pour guider la reconstruction.
+              Collez un lien Instagram Reel et decrivez ce que vous voyez — GPT utilisera vos notes pour reconstituer la recette.
             </DialogDescription>
           </DialogHeader>
+
+          <div className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
+            Instagram bloque le scraping automatique. <strong>Decrivez la recette dans les notes</strong> pour obtenir un resultat precis (ingredients, plat, quantites...).
+          </div>
 
           <div className="space-y-4">
             <div className="space-y-2">
@@ -296,13 +300,17 @@ export function RecipesBoard() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="reel-notes">Notes (optionnel)</Label>
+              <Label htmlFor="reel-notes">
+                Description de la recette <span className="text-red-500">*</span>
+              </Label>
               <Textarea
                 id="reel-notes"
-                placeholder="Ex: Je veux une version sans lactose, cuisson plus rapide..."
+                rows={4}
+                placeholder="Ex: Pates carbonara — 200g pates, 100g lardons, 2 oeufs, parmesan, poivre. Faire revenir les lardons, cuire les pates al dente, melanger hors feu avec les oeufs et le fromage."
                 value={form.notes}
                 onChange={(e) => setForm((prev) => ({ ...prev, notes: e.target.value }))}
               />
+              <p className="text-xs text-muted-foreground">Minimum 10 caracteres — plus vous decrivez, plus la recette sera precise.</p>
             </div>
 
             <Button className="w-full" onClick={handleGenerate} disabled={!canSubmit}>

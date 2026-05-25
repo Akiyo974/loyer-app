@@ -175,13 +175,20 @@ export async function POST(request: Request) {
             {
               type: "text",
               text: [
-                "Reconstitue la recette la plus plausible a partir des elements Reel.",
+                "Reconstitue la recette a partir des informations ci-dessous.",
+                "",
+                "IMPORTANT: Les notes de l'utilisateur sont la SOURCE PRINCIPALE.",
+                "Base-toi UNIQUEMENT sur ce que l'utilisateur a decrit. Ne devine pas un plat different.",
+                "Si les notes mentionnent des pates, fais une recette de pates.",
+                "Si elles mentionnent du poulet, fais une recette de poulet. Etc.",
+                "",
+                `Notes utilisateur (source principale): ${notes || "(aucune — utilise le titre/description de la page)"}`,
                 `Lien Reel: ${reelUrl}`,
-                `Notes utilisateur: ${notes || "(aucune)"}`,
                 `Titre page: ${metadata.pageTitle || ""}`,
                 `OG title: ${metadata.ogTitle || ""}`,
                 `OG description: ${metadata.ogDescription || ""}`,
-                "Si des infos manquent, reste prudent et explicite dans les etapes ou astuces.",
+                "",
+                "Si des quantites ou etapes sont manquantes, propose des valeurs raisonnables et mentionne-le dans les astuces.",
               ].join("\n"),
             },
             ...(screenshotBase64
