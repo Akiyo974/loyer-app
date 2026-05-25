@@ -246,26 +246,29 @@ export async function POST(request: Request) {
       updatedAt: saved.updatedAt,
     });
   } catch (error) {
-    await prisma.reelRecipe.upsert({
-      where: { householdId_reelUrl: { householdId, reelUrl } },
-      create: {
-        householdId,
-        createdById: session.user.id,
-        reelUrl,
-        lastNotes: notes || null,
-        thumbnailPath: thumbnailUrl,
-        lastStatus: "error",
-        hitCount: 1,
-      },
-      update: {
-        lastNotes: notes || null,
-        thumbnailPath: thumbnailUrl,
-        lastStatus: "error",
-        hitCount: { increment: 1 },
-      },
-    });
-
     const message = error instanceof Error ? error.message : "Echec generation recette";
+    try {
+      await prisma.reelRecipe.upsert({
+        where: { householdId_reelUrl: { householdId, reelUrl } },
+        create: {
+          householdId,
+          createdById: session.user.id,
+          reelUrl,
+          lastNotes: notes || null,
+          thumbnailPath: thumbnailUrl,
+          lastStatus: "error",
+          hitCount: 1,
+        },
+        update: {
+          lastNotes: notes || null,
+          thumbnailPath: thumbnailUrl,
+          lastStatus: "error",
+          hitCount: { increment: 1 },
+        },
+      });
+    } catch {
+      // La table n'existe peut-être pas encore (migration en attente)
+    }
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
