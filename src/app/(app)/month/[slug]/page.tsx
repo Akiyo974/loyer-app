@@ -57,7 +57,7 @@ export default async function MonthPage({ params, searchParams }: MonthPageProps
             </Link>
           </Button>
           <Button variant="outline" size="sm" asChild>
-            <Link href="/dashboard">Dashboard</Link>
+            <Link href="/dashboard">Tableau de bord</Link>
           </Button>
         </div>
       </div>
