@@ -1,9 +1,5 @@
-import { createHash } from "node:crypto";
-import { mkdir, readFile } from "node:fs/promises";
-import path from "node:path";
 import { NextResponse } from "next/server";
 import OpenAI from "openai";
-import { chromium } from "playwright";
 import { z } from "zod";
 import { auth } from "@/lib/auth";
 import { getActiveHouseholdId } from "@/lib/active-household";
@@ -66,54 +62,37 @@ const RecipeSchema = {
   strict: true,
 } as const;
 
-async function captureReelPreview(reelUrl: string) {
-  const browser = await chromium.launch({ headless: true });
-  try {
-    const context = await browser.newContext({ viewport: { width: 1080, height: 1920 } });
-    const page = await context.newPage();
+function extractMeta(html: string, property: string): string {
+  const m =
+    html.match(new RegExp(`<meta[^>]+property=["']${property}["'][^>]+content=["']([^"']+)["']`, "i")) ||
+    html.match(new RegExp(`<meta[^>]+content=["']([^"']+)["'][^>]+property=["']${property}["']`, "i"));
+  return m?.[1]?.trim().replace(/&amp;/g, "&").replace(/&#039;/g, "'") ?? "";
+}
 
-    await page.goto(reelUrl, { waitUntil: "domcontentloaded", timeout: 45000 });
-    await page.waitForLoadState("networkidle", { timeout: 8000 }).catch(() => undefined);
+async function scrapeReelMetadata(reelUrl: string): Promise<{
+  ogTitle: string;
+  ogDescription: string;
+  thumbnailPath: string | null;
+}> {
+  const res = await fetch(reelUrl, {
+    headers: {
+      "User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1",
+      Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+      "Accept-Language": "fr-FR,fr;q=0.9,en;q=0.8",
+      "Cache-Control": "no-cache",
+    },
+    redirect: "follow",
+    signal: AbortSignal.timeout(15000),
+  });
 
-    const metadata = await page.evaluate(() => {
-      const getMeta = (selector: string) => document.querySelector(selector)?.getAttribute("content")?.trim() ?? "";
-      return {
-        pageTitle: document.title,
-        ogTitle: getMeta('meta[property="og:title"]'),
-        ogDescription: getMeta('meta[property="og:description"]'),
-      };
-    });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
-    const hash = createHash("sha1").update(`${reelUrl}-${Date.now()}`).digest("hex").slice(0, 16);
-    const fileName = `${hash}.jpg`;
-    // Vercel : filesystem read-only sauf /tmp. En local, on écrit dans public/covers.
-    const isVercel = process.env.VERCEL === "1";
-    const coversDir = isVercel
-      ? path.join("/tmp", "covers")
-      : path.join(process.cwd(), "public", "covers");
-    await mkdir(coversDir, { recursive: true });
-
-    const shotPath = path.join(coversDir, fileName);
-
-    const video = page.locator("video").first();
-    if (await video.count()) {
-      await video.screenshot({ path: shotPath, quality: 75, timeout: 10000 }).catch(async () => {
-        await page.screenshot({ path: shotPath, quality: 70, fullPage: false });
-      });
-    } else {
-      await page.screenshot({ path: shotPath, quality: 70, fullPage: false });
-    }
-
-    await context.close();
-
-    return {
-      metadata,
-      thumbnailUrl: `/covers/${fileName}`,
-      screenshotPath: shotPath,
-    };
-  } finally {
-    await browser.close();
-  }
+  const html = await res.text();
+  return {
+    ogTitle: extractMeta(html, "og:title"),
+    ogDescription: extractMeta(html, "og:description"),
+    thumbnailPath: extractMeta(html, "og:image") || null,
+  };
 }
 
 export async function POST(request: Request) {
@@ -141,18 +120,16 @@ export async function POST(request: Request) {
   const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
   let thumbnailUrl: string | null = null;
-  let metadata: { pageTitle?: string; ogTitle?: string; ogDescription?: string } = {};
-  let screenshotBase64 = "";
+  let ogTitle = "";
+  let ogDescription = "";
 
   try {
-    const capture = await captureReelPreview(reelUrl);
-    thumbnailUrl = capture.thumbnailUrl;
-    metadata = capture.metadata;
-
-    const imageBytes = await readFile(capture.screenshotPath);
-    screenshotBase64 = Buffer.from(imageBytes).toString("base64");
+    const meta = await scrapeReelMetadata(reelUrl);
+    thumbnailUrl = meta.thumbnailPath;
+    ogTitle = meta.ogTitle;
+    ogDescription = meta.ogDescription;
   } catch {
-    // L'extraction Playwright peut échouer (login Instagram / anti-bot). On continue avec les métadonnées minimales.
+    // Instagram peut bloquer le scraping. On continue avec les notes utilisateur.
   }
 
   try {
@@ -182,23 +159,15 @@ export async function POST(request: Request) {
                 "Si les notes mentionnent des pates, fais une recette de pates.",
                 "Si elles mentionnent du poulet, fais une recette de poulet. Etc.",
                 "",
-                `Notes utilisateur (source principale): ${notes || "(aucune — utilise le titre/description de la page)"}`,
+                `Notes utilisateur: ${notes || "(aucune)"}`,
                 `Lien Reel: ${reelUrl}`,
-                `Titre page: ${metadata.pageTitle || ""}`,
-                `OG title: ${metadata.ogTitle || ""}`,
-                `OG description: ${metadata.ogDescription || ""}`,
+                `OG title (caption Instagram): ${ogTitle}`,
+                `OG description: ${ogDescription}`,
                 "",
-                "Si des quantites ou etapes sont manquantes, propose des valeurs raisonnables et mentionne-le dans les astuces.",
+                "Priorite: 1) Notes utilisateur 2) OG title/description 3) déduis depuis l'URL.",
+                "Si des quantites ou etapes manquent, propose des valeurs plausibles et signale-le dans les astuces.",
               ].join("\n"),
             },
-            ...(screenshotBase64
-              ? [
-                  {
-                    type: "image_url" as const,
-                    image_url: { url: `data:image/jpeg;base64,${screenshotBase64}` },
-                  },
-                ]
-              : []),
           ],
         },
       ],
