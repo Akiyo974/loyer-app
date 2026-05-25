@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
@@ -132,7 +132,7 @@ export function RecipesBoard() {
       });
       const data = await response.json();
       if (!response.ok) {
-        throw new Error(data?.error || "GÃ©nÃ©ration impossible");
+        throw new Error(data?.error || "Génération impossible");
       }
 
       setForm({ reelUrl: "", notes: "" });
@@ -157,7 +157,7 @@ export function RecipesBoard() {
         setSelected(newItem);
       }
     } catch (e) {
-      const message = e instanceof Error ? e.message : "Erreur lors de la gÃ©nÃ©ration";
+      const message = e instanceof Error ? e.message : "Erreur lors de la génération";
       setError(message);
     } finally {
       setSubmitting(false);
@@ -178,7 +178,7 @@ export function RecipesBoard() {
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
             <Input
-              placeholder="Rechercher par titre, ingrÃ©dient, descriptionâ€¦"
+              placeholder="Rechercher par titre, ingrédient, description…"
               className="pl-9 pr-9"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
@@ -199,9 +199,9 @@ export function RecipesBoard() {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="recent">Plus rÃ©cent</SelectItem>
-              <SelectItem value="popular">Plus utilisÃ©</SelectItem>
-              <SelectItem value="alpha">A â†’ Z</SelectItem>
+              <SelectItem value="recent">Plus récent</SelectItem>
+              <SelectItem value="popular">Plus utilisé</SelectItem>
+              <SelectItem value="alpha">A → Z</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -210,15 +210,15 @@ export function RecipesBoard() {
       {loadingList ? (
         <div className="py-16 flex items-center justify-center text-muted-foreground">
           <Loader2 className="h-5 w-5 animate-spin mr-2" />
-          Chargement des recettesâ€¦
+          Chargement des recettes…
         </div>
       ) : items.length === 0 ? (
         <Card className="border-dashed">
           <CardContent className="py-14 text-center space-y-3">
             <ChefHat className="h-10 w-10 mx-auto text-muted-foreground" />
-            <p className="font-semibold text-base">Aucune recette enregistrÃ©e</p>
+            <p className="font-semibold text-base">Aucune recette enregistrée</p>
             <p className="text-sm text-muted-foreground max-w-xs mx-auto">
-              Appuyez sur le bouton <span className="font-medium">+</span> pour analyser un Reel Instagram et crÃ©er votre premiÃ¨re fiche recette.
+              Appuyez sur le bouton <span className="font-medium">+</span> pour analyser un Reel Instagram et créer votre première fiche recette.
             </p>
           </CardContent>
         </Card>
@@ -226,8 +226,8 @@ export function RecipesBoard() {
         <Card className="border-dashed">
           <CardContent className="py-14 text-center space-y-3">
             <Search className="h-10 w-10 mx-auto text-muted-foreground" />
-            <p className="font-semibold text-base">Aucun rÃ©sultat</p>
-            <p className="text-sm text-muted-foreground">Aucune recette ne correspond Ã  Â« {search} Â».</p>
+            <p className="font-semibold text-base">Aucun résultat</p>
+            <p className="text-sm text-muted-foreground">Aucune recette ne correspond à « {search} ».</p>
             <Button variant="outline" size="sm" onClick={() => setSearch("")}>
               Effacer la recherche
             </Button>
@@ -237,7 +237,7 @@ export function RecipesBoard() {
         <>
           <p className="text-xs text-muted-foreground">
             {filtered.length} recette{filtered.length > 1 ? "s" : ""}
-            {search ? ` pour Â« ${search} Â»` : ""}
+            {search ? ` pour « ${search} »` : ""}
           </p>
           <div className="columns-1 sm:columns-2 lg:columns-3 gap-4 [column-fill:_balance]">
             {filtered.map((item) => (
@@ -265,7 +265,7 @@ export function RecipesBoard() {
                     )}
                     {item.hitCount > 1 && (
                       <Badge className="absolute top-2 right-2 text-xs bg-black/60 text-white border-0">
-                        {item.hitCount}Ã—
+                        {item.hitCount}×
                       </Badge>
                     )}
                   </div>
@@ -305,7 +305,7 @@ export function RecipesBoard() {
         </>
       )}
 
-      {/* Dialog dÃ©tail recette */}
+      {/* Dialog détail recette */}
       <Dialog open={!!selected} onOpenChange={(open) => !open && setSelected(null)}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           {selected?.recipe ? (
@@ -323,7 +323,7 @@ export function RecipesBoard() {
                 </div>
                 <div className="rounded-lg border bg-muted/40 p-3 flex flex-col items-center gap-1 text-center">
                   <Clock3 className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-xs text-muted-foreground">PrÃ©paration</span>
+                  <span className="text-xs text-muted-foreground">Préparation</span>
                   <span className="font-medium text-xs">{selected.recipe.prepTime}</span>
                 </div>
                 <div className="rounded-lg border bg-muted/40 p-3 flex flex-col items-center gap-1 text-center">
@@ -337,7 +337,7 @@ export function RecipesBoard() {
 
               <div className="space-y-2">
                 <h3 className="font-semibold text-sm uppercase tracking-wide text-muted-foreground">
-                  IngrÃ©dients
+                  Ingrédients
                 </h3>
                 <ul className="space-y-1">
                   {selected.recipe.ingredients.map((line, idx) => (
@@ -353,7 +353,7 @@ export function RecipesBoard() {
 
               <div className="space-y-2">
                 <h3 className="font-semibold text-sm uppercase tracking-wide text-muted-foreground">
-                  Ã‰tapes
+                  Étapes
                 </h3>
                 <ol className="space-y-3">
                   {selected.recipe.steps.map((line, idx) => (
@@ -372,7 +372,7 @@ export function RecipesBoard() {
                   <hr className="border-t" />
                   <div className="space-y-2">
                     <h3 className="font-semibold text-sm uppercase tracking-wide text-muted-foreground">
-                      ðŸ’¡ Astuces
+                      💡 Astuces
                     </h3>
                     <ul className="space-y-1">
                       {selected.recipe.tips.map((line, idx) => (
@@ -395,7 +395,7 @@ export function RecipesBoard() {
             </div>
           ) : (
             <div className="py-8 text-center text-muted-foreground">
-              Cette entrÃ©e ne contient pas de recette exploitable.
+              Cette entrée ne contient pas de recette exploitable.
             </div>
           )}
         </DialogContent>
@@ -417,10 +417,10 @@ export function RecipesBoard() {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Sparkles className="h-5 w-5" />
-              GÃ©nÃ©rer une recette depuis un Reel
+              Générer une recette depuis un Reel
             </DialogTitle>
             <DialogDescription>
-              Collez un lien Instagram Reel. Ajoutez des notes si la recette n'est pas dÃ©tectÃ©e automatiquement.
+              Collez un lien Instagram Reel. Ajoutez des notes si la recette n'est pas détectée automatiquement.
             </DialogDescription>
           </DialogHeader>
 
@@ -429,12 +429,12 @@ export function RecipesBoard() {
               <Label htmlFor="reel-url">Lien Reel Instagram</Label>
               <Input
                 id="reel-url"
-                placeholder="https://www.instagram.com/reel/â€¦"
+                placeholder="https://www.instagram.com/reel/…"
                 value={form.reelUrl}
                 onChange={(e) => setForm((prev) => ({ ...prev, reelUrl: e.target.value }))}
               />
               {form.reelUrl && !form.reelUrl.includes("instagram.com/reel/") && (
-                <p className="text-xs text-red-500">Ce lien ne semble pas Ãªtre un Reel Instagram.</p>
+                <p className="text-xs text-red-500">Ce lien ne semble pas être un Reel Instagram.</p>
               )}
             </div>
 
@@ -445,7 +445,7 @@ export function RecipesBoard() {
               <Textarea
                 id="reel-notes"
                 rows={3}
-                placeholder="Ex : PÃ¢tes carbonara â€” lardons, Å“ufs, parmesan. Ou prÃ©cisez ce qui manque dans la recette gÃ©nÃ©rÃ©e."
+                placeholder="Ex : Pâtes carbonara — lardons, œufs, parmesan. Ou précisez ce qui manque dans la recette générée."
                 value={form.notes}
                 onChange={(e) => setForm((prev) => ({ ...prev, notes: e.target.value }))}
               />
@@ -455,12 +455,12 @@ export function RecipesBoard() {
               {submitting ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  GÃ©nÃ©ration en coursâ€¦
+                  Génération en cours…
                 </>
               ) : (
                 <>
                   <Sparkles className="h-4 w-4 mr-2" />
-                  GÃ©nÃ©rer la recette
+                  Générer la recette
                 </>
               )}
             </Button>
