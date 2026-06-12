@@ -7,6 +7,17 @@ import { computeMonthSummary, computePaymentBalance } from "@/lib/calc";
 import { toNumber } from "@/lib/types";
 import type { MonthData } from "@/lib/types";
 
+/** Retourne les membres du foyer actif (pour les selects de formulaires). */
+export async function getHouseholdMembers(): Promise<{ id: string; name: string }[]> {
+  const { householdId } = await requireHouseholdMember();
+  const members = await prisma.householdMember.findMany({
+    where: { householdId },
+    include: { user: { select: { id: true, name: true } } },
+    orderBy: { createdAt: "asc" },
+  });
+  return members.map((m) => ({ id: m.userId, name: m.displayName }));
+}
+
 /**
  * Retourne toutes les données d'un mois (agrégats inclus).
  * Point d'entrée principal des pages month/[slug].

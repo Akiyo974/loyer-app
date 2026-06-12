@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { Navbar } from "@/components/layout/navbar";
+import { QuickAddButton } from "@/components/layout/quick-add-button";
 import { currentMonthSlug } from "@/lib/utils";
 import { getActiveHouseholdId } from "@/lib/active-household";
 
@@ -38,6 +39,7 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
         currentMonthSlug={currentMonthSlug()}
       />
       <main className="container mx-auto px-4 py-8 max-w-6xl">{children}</main>
+      <QuickAddButton defaultSlug={currentMonthSlug()} />
     </div>
   );
 }

@@ -1,39 +1,88 @@
-export default function OfflinePage() {
-  return (
-    <div className="min-h-screen flex flex-col items-center justify-center gap-6 p-6 bg-background text-foreground">
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        className="w-20 h-20 text-muted-foreground"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      >
-        <line x1="1" y1="1" x2="23" y2="23" />
-        <path d="M16.72 11.06A10.94 10.94 0 0 1 19 12.55" />
-        <path d="M5 12.55a10.94 10.94 0 0 1 5.17-2.39" />
-        <path d="M10.71 5.05A16 16 0 0 1 22.56 9" />
-        <path d="M1.42 9a15.91 15.91 0 0 1 4.7-2.88" />
-        <path d="M8.53 16.11a6 6 0 0 1 6.95 0" />
-        <circle cx="12" cy="20" r="1" />
-      </svg>
+"use client";
 
-      <div className="text-center max-w-sm space-y-2">
-        <h1 className="text-xl font-semibold">Vous êtes hors-ligne</h1>
-        <p className="text-sm text-muted-foreground">
-          Les mois que vous avez consultés restent accessibles. Reconnectez-vous
-          pour voir les données à jour.
-        </p>
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import { WifiOff, Calendar } from "lucide-react";
+
+interface CachedMonth {
+  slug: string;
+  label: string;
+}
+
+const MONTH_NAMES = [
+  "Janvier","Février","Mars","Avril","Mai","Juin",
+  "Juillet","Août","Septembre","Octobre","Novembre","Décembre",
+];
+
+function slugToLabel(slug: string) {
+  const [year, month] = slug.split("-");
+  return `${MONTH_NAMES[parseInt(month, 10) - 1]} ${year}`;
+}
+
+export default function OfflinePage() {
+  const [cachedMonths, setCachedMonths] = useState<CachedMonth[]>([]);
+
+  useEffect(() => {
+    async function loadCache() {
+      if (!("caches" in window)) return;
+      try {
+        const cache = await caches.open("foyer-v1");
+        const keys = await cache.keys();
+        const months: CachedMonth[] = keys
+          .map((req) => {
+            const url = new URL(req.url);
+            const m = url.pathname.match(/^\/month\/(\d{4}-\d{2})$/);
+            return m ? { slug: m[1], label: slugToLabel(m[1]) } : null;
+          })
+          .filter(Boolean)
+          .sort((a, b) => (b!.slug > a!.slug ? 1 : -1)) as CachedMonth[];
+        setCachedMonths(months);
+      } catch {
+        // Cache non accessible
+      }
+    }
+    loadCache();
+  }, []);
+
+  return (
+    <div className="min-h-screen flex flex-col items-center justify-center gap-8 p-6 bg-background text-foreground">
+      <div className="flex flex-col items-center gap-4 text-center max-w-sm">
+        <WifiOff className="w-14 h-14 text-muted-foreground" strokeWidth={1.5} />
+        <div className="space-y-1">
+          <h1 className="text-xl font-semibold">Vous êtes hors-ligne</h1>
+          <p className="text-sm text-muted-foreground">
+            Reconnectez-vous pour voir les données à jour.
+          </p>
+        </div>
       </div>
 
-      <a
+      {cachedMonths.length > 0 && (
+        <div className="w-full max-w-xs space-y-2">
+          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide text-center">
+            Mois disponibles hors-ligne
+          </p>
+          <div className="flex flex-col gap-1.5">
+            {cachedMonths.map((m) => (
+              <Link
+                key={m.slug}
+                href={`/month/${m.slug}`}
+                className="flex items-center gap-3 px-4 py-3 rounded-lg border border-border bg-card hover:bg-accent transition-colors text-sm font-medium"
+              >
+                <Calendar className="h-4 w-4 text-primary shrink-0" />
+                {m.label}
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <Link
         href="/dashboard"
         className="text-sm underline underline-offset-4 text-muted-foreground hover:text-foreground transition-colors"
       >
         Retour au tableau de bord
-      </a>
+      </Link>
     </div>
   );
 }
+
