@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { renderToBuffer } from "@react-pdf/renderer";
-import { createElement } from "react";
+import { pdf } from "@react-pdf/renderer";
 import { auth } from "@/lib/auth";
 import { getActiveHouseholdId } from "@/lib/active-household";
 import { prisma } from "@/lib/prisma";
@@ -9,6 +8,7 @@ import { computeMonthSummary, computePaymentBalance } from "@/lib/calc";
 import { toNumber } from "@/lib/types";
 import { MonthPDF } from "@/components/export/month-pdf";
 import type { MonthData } from "@/lib/types";
+import React from "react";
 
 export const runtime = "nodejs";
 
@@ -18,7 +18,7 @@ export async function GET(
 ) {
   const session = await auth();
   if (!session?.user?.id) {
-    return new NextResponse("Non autorisé", { status: 401 });
+    return new NextResponse("Non autorise", { status: 401 });
   }
 
   const { slug } = await params;
@@ -33,15 +33,13 @@ export async function GET(
     return new NextResponse("Foyer introuvable", { status: 404 });
   }
 
-  // Vérifier que l'utilisateur appartient au foyer
   const member = await prisma.householdMember.findUnique({
     where: { householdId_userId: { householdId, userId: session.user.id } },
   });
   if (!member) {
-    return new NextResponse("Accès refusé", { status: 403 });
+    return new NextResponse("Acces refuse", { status: 403 });
   }
 
-  // Charger les données du mois
   const { year, month } = parseMonthSlug(slug);
 
   const household = await prisma.household.findUnique({
@@ -95,12 +93,12 @@ export async function GET(
     savingsGoal: m.savingsGoal ?? 0,
   }));
 
-  const memberRevenues = memberInfos.map((m) => {
-    const netMonthlyIncome = paychecks
+  const memberRevenues = memberInfos.map((m) => ({
+    ...m,
+    netMonthlyIncome: paychecks
       .filter((p) => p.userId === m.userId)
-      .reduce((sum, p) => sum + toNumber(p.netAmount), 0);
-    return { ...m, netMonthlyIncome };
-  });
+      .reduce((sum, p) => sum + toNumber(p.netAmount), 0),
+  }));
 
   const totalExpenses = expenses.reduce((sum, e) => sum + toNumber(e.amount), 0);
   const totalRevenues = memberRevenues.reduce((sum, m) => sum + m.netMonthlyIncome, 0);
@@ -170,34 +168,29 @@ export async function GET(
   // ---- CSV ----
   if (format === "csv") {
     const lines: string[] = [];
-
-    lines.push(`Rapport — ${slug}`);
+    lines.push(`Rapport - ${slug}`);
     lines.push(`Total revenus,${totalRevenues.toFixed(2)}`);
-    lines.push(`Total dépenses,${totalExpenses.toFixed(2)}`);
+    lines.push(`Total depenses,${totalExpenses.toFixed(2)}`);
     lines.push(``);
-
-    lines.push(`Dépenses`);
-    lines.push(`Catégorie,Description,Montant,Type,Payé par`);
+    lines.push(`Depenses`);
+    lines.push(`Categorie,Description,Montant,Type,Paye par`);
     for (const e of monthData.expenses) {
       lines.push(`"${e.category}","${e.label}",${e.amount.toFixed(2)},"${e.type}","${e.paidByName ?? ""}"`);
     }
     lines.push(``);
-
     lines.push(`Revenus / Paies`);
-    lines.push(`Membre,Date,Brut,Déductions,Net`);
+    lines.push(`Membre,Date,Brut,Deductions,Net`);
     for (const p of monthData.paychecks) {
       lines.push(`"${p.displayName}","${p.date.slice(0, 10)}",${p.grossAmount.toFixed(2)},${p.vacationDeduction.toFixed(2)},${p.netAmount.toFixed(2)}`);
     }
     lines.push(``);
-
-    lines.push(`Répartition`);
-    lines.push(`Membre,Part %,Attendu,Déposé,Solde`);
+    lines.push(`Repartition`);
+    lines.push(`Membre,Part %,Attendu,Depose,Solde`);
     for (const c of monthData.contributions) {
       lines.push(`"${c.displayName}",${(c.share * 100).toFixed(1)},${c.expectedContribution.toFixed(2)},${c.totalDeposited.toFixed(2)},${c.paymentBalance.toFixed(2)}`);
     }
 
-    const csv = lines.join("\n");
-    return new NextResponse(csv, {
+    return new NextResponse(lines.join("\n"), {
       headers: {
         "Content-Type": "text/csv; charset=utf-8",
         "Content-Disposition": `attachment; filename="foyer-${slug}.csv"`,
@@ -207,9 +200,28 @@ export async function GET(
 
   // ---- PDF ----
   try {
+    const element = React.createElement(MonthPDF, { data: monthData });
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const buffer = await renderToBuffer(createElement(MonthPDF, { data: monthData }) as any);
-    return new NextResponse(buffer as unknown as BodyInit, {
+    const instance = pdf(element as any);
+    const stream = await instance.toBuffer();
+
+    // Convertir ReadableStream en Uint8Array
+    const chunks: Uint8Array[] = [];
+    const reader = (stream as unknown as ReadableStream<Uint8Array>).getReader();
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      chunks.push(value);
+    }
+    const totalLength = chunks.reduce((sum, c) => sum + c.length, 0);
+    const buffer = new Uint8Array(totalLength);
+    let offset = 0;
+    for (const chunk of chunks) {
+      buffer.set(chunk, offset);
+      offset += chunk.length;
+    }
+
+    return new NextResponse(buffer, {
       headers: {
         "Content-Type": "application/pdf",
         "Content-Disposition": `attachment; filename="foyer-${slug}.pdf"`,
