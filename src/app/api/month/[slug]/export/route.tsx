@@ -1,14 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
-import { pdf } from "@react-pdf/renderer";
 import { auth } from "@/lib/auth";
 import { getActiveHouseholdId } from "@/lib/active-household";
 import { prisma } from "@/lib/prisma";
 import { parseMonthSlug, prevMonthSlug } from "@/lib/utils";
 import { computeMonthSummary, computePaymentBalance } from "@/lib/calc";
 import { toNumber } from "@/lib/types";
-import { MonthPDF } from "@/components/export/month-pdf";
+import { generateMonthPDF } from "@/lib/pdf-generator";
 import type { MonthData } from "@/lib/types";
-import React from "react";
 
 export const runtime = "nodejs";
 
@@ -200,28 +198,8 @@ export async function GET(
 
   // ---- PDF ----
   try {
-    const element = React.createElement(MonthPDF, { data: monthData });
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const instance = pdf(element as any);
-    const stream = await instance.toBuffer();
-
-    // Convertir ReadableStream en Uint8Array
-    const chunks: Uint8Array[] = [];
-    const reader = (stream as unknown as ReadableStream<Uint8Array>).getReader();
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      chunks.push(value);
-    }
-    const totalLength = chunks.reduce((sum, c) => sum + c.length, 0);
-    const buffer = new Uint8Array(totalLength);
-    let offset = 0;
-    for (const chunk of chunks) {
-      buffer.set(chunk, offset);
-      offset += chunk.length;
-    }
-
-    return new NextResponse(buffer, {
+    const buffer = await generateMonthPDF(monthData);
+    return new NextResponse(buffer as unknown as BodyInit, {
       headers: {
         "Content-Type": "application/pdf",
         "Content-Disposition": `attachment; filename="foyer-${slug}.pdf"`,
