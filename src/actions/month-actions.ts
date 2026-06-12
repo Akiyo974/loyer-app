@@ -117,7 +117,10 @@ export async function getMonthData(monthSlug: string): Promise<MonthData> {
     const paymentBalance = computePaymentBalance(totalDeposited, c.expectedContribution);
     const savingsGoal = memberInfos.find((m) => m.userId === c.userId)?.savingsGoal ?? 0;
     const remainingAfterSavings = c.remainingAfterContribution - savingsGoal;
-    return { ...c, totalDeposited, paymentBalance, savingsGoal, remainingAfterSavings };
+    const vacationTotal = paychecks
+      .filter((p) => p.userId === c.userId)
+      .reduce((sum, p) => sum + toNumber(p.vacationDeduction), 0);
+    return { ...c, totalDeposited, paymentBalance, savingsGoal, remainingAfterSavings, vacationTotal };
   });
 
   return {

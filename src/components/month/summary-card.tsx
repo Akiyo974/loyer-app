@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import type { MonthData } from "@/lib/types";
-import { TrendingUp, Wallet, ArrowDownCircle, ArrowUpCircle, PiggyBank } from "lucide-react";
+import { TrendingUp, Wallet, ArrowDownCircle, ArrowUpCircle, PiggyBank, Plane } from "lucide-react";
 
 interface SummaryCardProps {
   monthData: MonthData;
@@ -97,6 +97,15 @@ export function SummaryCard({ monthData }: SummaryCardProps) {
                     value={formatCurrency(c.remainingAfterContribution)}
                     subLabel="revenu - contribution attendue"
                   />
+                  {c.vacationTotal > 0 && (
+                    <Row
+                      label="Vacances"
+                      value={formatCurrency(c.vacationTotal)}
+                      subLabel="mis de côté ce mois-ci"
+                      color="text-cyan-600"
+                      icon={<Plane className="h-3.5 w-3.5 text-cyan-500" />}
+                    />
+                  )}
                   {c.savingsGoal > 0 && (
                     <>
                       <Row

@@ -61,6 +61,7 @@ export interface MemberContribution {
   remainingAfterContribution: number;
   savingsGoal: number;          // objectif d'épargne mensuel
   remainingAfterSavings: number; // revenus - contribution - épargne
+  vacationTotal: number;        // somme des déductions vacances du mois
   totalDeposited: number;
   paymentBalance: number; // > 0 = trop payé, < 0 = reste à payer
 }
