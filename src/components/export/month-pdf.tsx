@@ -9,14 +9,14 @@ import type { MonthData } from "@/lib/types";
 
 const CATEGORY_FR: Record<string, string> = {
   LOYER: "Loyer",
-  EPICERIE: "Épicerie",
+  EPICERIE: "Epicerie",
   TRANSPORT: "Transport",
-  SANTE: "Santé",
+  SANTE: "Sante",
   LOISIRS: "Loisirs",
   RESTAURANTS: "Restaurants",
-  VETEMENTS: "Vêtements",
+  VETEMENTS: "Vetements",
   ABONNEMENTS: "Abonnements",
-  ELECTRICITE: "Électricité",
+  ELECTRICITE: "Electricite",
   INTERNET: "Internet",
   ASSURANCE: "Assurance",
   ENTRETIEN: "Entretien",
@@ -45,7 +45,6 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontFamily: "Helvetica-Bold",
     color: "#2563eb",
-    textTransform: "capitalize",
   },
   subtitle: {
     fontSize: 10,
@@ -151,28 +150,28 @@ export function MonthPDF({ data }: Props) {
       <Page size="A4" style={styles.page}>
         {/* Header */}
         <View style={styles.header}>
-          <Text style={styles.title}>Rapport — {monthLabel(data.year, data.month)}</Text>
+          <Text style={styles.title}>Rapport -- {monthLabel(data.year, data.month)}</Text>
           <Text style={styles.subtitle}>
-            Généré le {new Date().toLocaleDateString("fr-CA")}
+            Genere le {new Date().toLocaleDateString("fr-CA")}
           </Text>
         </View>
 
-        {/* Résumé */}
-        <Text style={styles.sectionTitle}>Résumé du mois</Text>
+        {/* Resume */}
+        <Text style={styles.sectionTitle}>Resume du mois</Text>
         <View style={styles.summaryRow}>
           <Text style={styles.summaryLabel}>Total revenus</Text>
           <Text style={styles.summaryValueGreen}>{formatCurrency(data.totalRevenues)}</Text>
         </View>
         <View style={styles.summaryRow}>
-          <Text style={styles.summaryLabel}>Total dépenses</Text>
+          <Text style={styles.summaryLabel}>Total depenses</Text>
           <Text style={styles.summaryValueRed}>{formatCurrency(data.totalExpenses)}</Text>
         </View>
         <View style={styles.summaryRow}>
-          <Text style={styles.summaryLabel}>Taux d'effort</Text>
+          <Text style={styles.summaryLabel}>Taux d effort</Text>
           <Text style={styles.summaryValue}>{effortRatio}%</Text>
         </View>
         <View style={styles.summaryRow}>
-          <Text style={styles.summaryLabel}>Solde (revenus - dépenses)</Text>
+          <Text style={styles.summaryLabel}>Solde (revenus - depenses)</Text>
           <Text
             style={
               data.totalRevenues - data.totalExpenses >= 0
@@ -184,14 +183,14 @@ export function MonthPDF({ data }: Props) {
           </Text>
         </View>
 
-        {/* Dépenses */}
-        <Text style={styles.sectionTitle}>Dépenses ({data.expenses.length})</Text>
+        {/* Depenses */}
+        <Text style={styles.sectionTitle}>Depenses ({data.expenses.length})</Text>
         <View style={styles.tableHeader}>
-          <Text style={[styles.tableHeaderText, styles.colCategory]}>Catégorie</Text>
+          <Text style={[styles.tableHeaderText, styles.colCategory]}>Categorie</Text>
           <Text style={[styles.tableHeaderText, styles.colLabel]}>Description</Text>
           <Text style={[styles.tableHeaderText, styles.colAmount]}>Montant</Text>
           <Text style={[styles.tableHeaderText, styles.colType]}>Type</Text>
-          <Text style={[styles.tableHeaderText, styles.colPaidBy]}>Payé par</Text>
+          <Text style={[styles.tableHeaderText, styles.colPaidBy]}>Paye par</Text>
         </View>
         {data.expenses.map((e, i) => (
           <View key={e.id} style={i % 2 === 0 ? styles.tableRow : styles.tableRowAlt}>
@@ -199,7 +198,7 @@ export function MonthPDF({ data }: Props) {
             <Text style={styles.colLabel}>{e.label}</Text>
             <Text style={styles.colAmount}>{formatCurrency(e.amount)}</Text>
             <Text style={styles.colType}>{TYPE_FR[e.type] ?? e.type}</Text>
-            <Text style={styles.colPaidBy}>{e.paidByName ?? "—"}</Text>
+            <Text style={styles.colPaidBy}>{e.paidByName ?? "-"}</Text>
           </View>
         ))}
 
@@ -208,13 +207,13 @@ export function MonthPDF({ data }: Props) {
         <View style={styles.tableHeader}>
           <Text style={[styles.tableHeaderText, styles.colMember]}>Membre</Text>
           <Text style={[styles.tableHeaderText, styles.colGross]}>Brut</Text>
-          <Text style={[styles.tableHeaderText, styles.colDeduction]}>Déductions</Text>
+          <Text style={[styles.tableHeaderText, styles.colDeduction]}>Deductions</Text>
           <Text style={[styles.tableHeaderText, styles.colNet]}>Net</Text>
         </View>
         {data.paychecks.map((p, i) => (
           <View key={p.id} style={i % 2 === 0 ? styles.tableRow : styles.tableRowAlt}>
             <Text style={styles.colMember}>
-              {p.displayName} — {formatDate(p.date)}
+              {p.displayName} - {formatDate(p.date)}
             </Text>
             <Text style={styles.colGross}>{formatCurrency(p.grossAmount)}</Text>
             <Text style={styles.colDeduction}>{formatCurrency(p.vacationDeduction)}</Text>
@@ -223,12 +222,12 @@ export function MonthPDF({ data }: Props) {
         ))}
 
         {/* Contributions */}
-        <Text style={styles.sectionTitle}>Répartition & dépôts</Text>
+        <Text style={styles.sectionTitle}>Repartition & depots</Text>
         <View style={styles.tableHeader}>
           <Text style={[styles.tableHeaderText, styles.colMember]}>Membre</Text>
           <Text style={[styles.tableHeaderText, styles.colShare]}>Part %</Text>
           <Text style={[styles.tableHeaderText, styles.colExpected]}>Attendu</Text>
-          <Text style={[styles.tableHeaderText, styles.colDeposited]}>Déposé</Text>
+          <Text style={[styles.tableHeaderText, styles.colDeposited]}>Depose</Text>
           <Text style={[styles.tableHeaderText, styles.colBalance]}>Solde</Text>
         </View>
         {data.contributions.map((c, i) => (
@@ -251,7 +250,7 @@ export function MonthPDF({ data }: Props) {
 
         {/* Footer */}
         <Text style={styles.footer}>
-          Foyer — Rapport généré automatiquement • {monthLabel(data.year, data.month)}
+          Foyer - Rapport genere automatiquement - {monthLabel(data.year, data.month)}
         </Text>
       </Page>
     </Document>

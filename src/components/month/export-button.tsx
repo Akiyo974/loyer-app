@@ -16,12 +16,18 @@ interface ExportButtonProps {
 
 export function ExportButton({ slug }: ExportButtonProps) {
   const [loading, setLoading] = useState<"pdf" | "csv" | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   async function handleExport(format: "pdf" | "csv") {
     setLoading(format);
+    setError(null);
     try {
       const res = await fetch(`/api/month/${slug}/export?format=${format}`);
-      if (!res.ok) throw new Error("Erreur lors de l'export");
+      if (!res.ok) {
+        const text = await res.text();
+        setError(text || `Erreur ${res.status}`);
+        return;
+      }
 
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);
@@ -31,14 +37,18 @@ export function ExportButton({ slug }: ExportButtonProps) {
       a.click();
       URL.revokeObjectURL(url);
     } catch (err) {
-      console.error(err);
+      setError(err instanceof Error ? err.message : String(err));
     } finally {
       setLoading(null);
     }
   }
 
   return (
-    <DropdownMenu>
+    <div className="flex flex-col items-end gap-1">
+      {error && (
+        <p className="text-xs text-red-500 max-w-xs text-right font-mono">{error}</p>
+      )}
+      <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="outline" size="sm" disabled={loading !== null}>
           <Download className="h-4 w-4 mr-2" />
@@ -64,5 +74,6 @@ export function ExportButton({ slug }: ExportButtonProps) {
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
+    </div>
   );
 }

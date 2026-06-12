@@ -10,6 +10,8 @@ import { toNumber } from "@/lib/types";
 import { MonthPDF } from "@/components/export/month-pdf";
 import type { MonthData } from "@/lib/types";
 
+export const runtime = "nodejs";
+
 export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ slug: string }> }
@@ -204,13 +206,17 @@ export async function GET(
   }
 
   // ---- PDF ----
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const buffer = await renderToBuffer(createElement(MonthPDF, { data: monthData }) as any);
-
-  return new NextResponse(buffer as unknown as BodyInit, {
-    headers: {
-      "Content-Type": "application/pdf",
-      "Content-Disposition": `attachment; filename="foyer-${slug}.pdf"`,
-    },
-  });
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const buffer = await renderToBuffer(createElement(MonthPDF, { data: monthData }) as any);
+    return new NextResponse(buffer as unknown as BodyInit, {
+      headers: {
+        "Content-Type": "application/pdf",
+        "Content-Disposition": `attachment; filename="foyer-${slug}.pdf"`,
+      },
+    });
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    return new NextResponse(`Erreur PDF: ${msg}`, { status: 500 });
+  }
 }
