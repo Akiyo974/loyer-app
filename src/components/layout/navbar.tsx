@@ -4,11 +4,17 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { signOut } from "next-auth/react";
 import { LogOut, Menu, X } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { HouseholdSelector } from "./household-selector";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
+import { Download } from "lucide-react";
+
+interface BeforeInstallPromptEvent extends Event {
+  prompt: () => Promise<void>;
+  userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
+}
 
 interface HouseholdOption {
   id: string;
@@ -26,6 +32,20 @@ export function Navbar({ userName, households, activeHouseholdId, currentMonthSl
   const pathname = usePathname();
   const router = useRouter();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [installPrompt, setInstallPrompt] = useState<BeforeInstallPromptEvent | null>(null);
+
+  useEffect(() => {
+    if (window.matchMedia("(display-mode: standalone)").matches) return;
+    const handler = (e: Event) => { e.preventDefault(); setInstallPrompt(e as BeforeInstallPromptEvent); };
+    window.addEventListener("beforeinstallprompt", handler);
+    return () => window.removeEventListener("beforeinstallprompt", handler);
+  }, []);
+
+  async function handleInstall() {
+    if (!installPrompt) return;
+    await installPrompt.prompt();
+    setInstallPrompt(null);
+  }
 
   const navLinks = [
     { href: "/dashboard", label: "Tableau de bord" },
@@ -65,6 +85,12 @@ export function Navbar({ userName, households, activeHouseholdId, currentMonthSl
 
           {/* User + Logout */}
           <div className="hidden md:flex items-center gap-1">
+            {installPrompt && (
+              <Button variant="outline" size="sm" onClick={handleInstall} className="gap-1.5 h-8 text-xs">
+                <Download className="h-3.5 w-3.5" />
+                Installer
+              </Button>
+            )}
             <ThemeToggle />
             <span className="text-sm text-muted-foreground px-2">{userName}</span>
             <Button
@@ -106,6 +132,15 @@ export function Navbar({ userName, households, activeHouseholdId, currentMonthSl
                 {label}
               </Link>
             ))}
+            {installPrompt && (
+              <button
+                onClick={handleInstall}
+                className="flex items-center gap-2 px-3 py-2 text-sm text-primary w-full font-medium"
+              >
+                <Download className="h-4 w-4" />
+                Installer l&apos;app
+              </button>
+            )}
             <button
               onClick={handleLogout}
               className="flex items-center gap-2 px-3 py-2 text-sm text-muted-foreground w-full"

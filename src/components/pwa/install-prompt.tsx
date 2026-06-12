@@ -16,8 +16,13 @@ export function InstallPrompt() {
   useEffect(() => {
     // Ne pas montrer si déjà installé en mode standalone
     if (window.matchMedia("(display-mode: standalone)").matches) return;
-    // Ne pas montrer si l'utilisateur a déjà refusé
-    if (localStorage.getItem("pwa-dismissed") === "1") return;
+    // Ne pas montrer si l'utilisateur a refusé récemment (7 jours)
+    const dismissed = localStorage.getItem("pwa-dismissed");
+    if (dismissed) {
+      const since = Date.now() - parseInt(dismissed, 10);
+      if (since < 7 * 24 * 60 * 60 * 1000) return;
+      localStorage.removeItem("pwa-dismissed");
+    }
 
     const handler = (e: Event) => {
       e.preventDefault();
@@ -38,7 +43,7 @@ export function InstallPrompt() {
   }
 
   function handleDismiss() {
-    localStorage.setItem("pwa-dismissed", "1");
+    localStorage.setItem("pwa-dismissed", String(Date.now()));
     setDismissed(true);
   }
 
