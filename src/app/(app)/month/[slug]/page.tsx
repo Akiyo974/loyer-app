@@ -29,19 +29,23 @@ export default async function MonthPage({ params, searchParams }: MonthPageProps
     notFound();
   }
 
-  let monthData;
-  let budgets;
+  let monthData: Awaited<ReturnType<typeof getMonthData>> | undefined;
   try {
-    [monthData, budgets] = await Promise.all([
-      getMonthData(slug),
-      getCategoryBudgets(),
-    ]);
+    monthData = await getMonthData(slug);
   } catch {
     redirect("/dashboard");
   }
+  if (!monthData) redirect("/dashboard");
+
+  let budgets: Awaited<ReturnType<typeof getCategoryBudgets>> = [];
+  try {
+    budgets = await getCategoryBudgets();
+  } catch {
+    // budgets optionnels, ne pas bloquer la page
+  }
 
   const budgetMap = budgets.reduce(
-    (acc, b) => {
+    (acc: Record<string, number>, b: { category: string; monthlyBudget: number }) => {
       acc[b.category] = b.monthlyBudget;
       return acc;
     },

@@ -69,11 +69,13 @@ async function AnalyticsContent() {
         <Card className="p-4">
           <p className="text-sm text-gray-600 mb-1">Taux d&apos;effort moyen</p>
           <p className="text-2xl font-bold text-blue-600">
-            {(
-              (analyticsData.averageMonthlyExpense /
-                analyticsData.averageMonthlyRevenue) *
-              100
-            ).toFixed(1)}
+            {analyticsData.averageMonthlyRevenue > 0
+              ? (
+                  (analyticsData.averageMonthlyExpense /
+                    analyticsData.averageMonthlyRevenue) *
+                  100
+                ).toFixed(1)
+              : "0.0"}
             %
           </p>
         </Card>
