@@ -76,7 +76,7 @@ export async function POST(req: NextRequest) {
   const resend = new Resend(process.env.RESEND_API_KEY);
 
   const { error } = await resend.emails.send({
-    from: "Foyer <rapports@foyer.app>",
+    from: "Foyer <rapports@christendijoux.com>",
     to: emails,
     subject: `Rapport ${householdName} — ${monthLabel}`,
     html: buildReportEmailHtml(monthData, householdName),
