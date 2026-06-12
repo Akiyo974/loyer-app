@@ -8,14 +8,20 @@ export default function manifest(): MetadataRoute.Manifest {
       "Répartissez équitablement les dépenses de votre foyer au prorata de vos revenus.",
     start_url: "/dashboard",
     display: "standalone",
-    background_color: "#ffffff",
+    background_color: "#18181b",
     theme_color: "#18181b",
     orientation: "portrait",
     icons: [
       {
-        src: "/icons/icon.svg",
-        sizes: "any",
-        type: "image/svg+xml",
+        src: "/api/icon/192",
+        sizes: "192x192",
+        type: "image/png",
+        purpose: "any",
+      },
+      {
+        src: "/api/icon/512",
+        sizes: "512x512",
+        type: "image/png",
         purpose: "any",
       },
       {

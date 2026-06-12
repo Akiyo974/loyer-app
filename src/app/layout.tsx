@@ -1,6 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import { RegisterSW } from "@/components/pwa/register-sw";
+import { InstallPrompt } from "@/components/pwa/install-prompt";
+import { ThemeProvider } from "@/components/providers/theme-provider";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -27,11 +29,14 @@ export default function RootLayout({
   return (
     <html lang="fr" suppressHydrationWarning>
       <head>
-        <link rel="apple-touch-icon" href="/icons/icon.svg" />
+        <link rel="apple-touch-icon" href="/icons/icon-192.png" />
       </head>
       <body className={inter.className} suppressHydrationWarning>
-        {children}
-        <RegisterSW />
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+          {children}
+          <RegisterSW />
+          <InstallPrompt />
+        </ThemeProvider>
       </body>
     </html>
   );
