@@ -116,7 +116,7 @@ export function QuickAddButton({ defaultSlug }: QuickAddButtonProps) {
     const gross = parseFloat(pGross);
     const vacation = parseFloat(pVacation) || 0;
     if (!pDate || isNaN(gross) || gross <= 0) {
-      setError("Date et montant brut valides requis.");
+      setError("Date et montant net valides requis.");
       return;
     }
     startTransition(async () => {
@@ -275,7 +275,7 @@ export function QuickAddButton({ defaultSlug }: QuickAddButtonProps) {
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1.5">
-                  <Label htmlFor="qa-gross">Montant brut ($)</Label>
+                  <Label htmlFor="qa-gross">Montant net ($)</Label>
                   <Input id="qa-gross" type="number" step="0.01" min="0.01"
                     placeholder="0.00" value={pGross}
                     onChange={(e) => setPGross(e.target.value)} autoFocus required />

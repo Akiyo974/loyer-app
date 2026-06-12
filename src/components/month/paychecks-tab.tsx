@@ -46,7 +46,7 @@ function toDateString(d: Date): string {
   return `${d.getFullYear()}-${mm}-${dd}`;
 }
 
-/** GÃ©nÃ¨re toutes les dates bi-hebdomadaires du mois Ã  partir de firstDate. */
+/** Génère toutes les dates bi-hebdomadaires du mois à partir de firstDate. */
 function getBiweeklyDates(firstDate: string, year: number, month: number): string[] {
   if (!firstDate.match(/^\d{4}-\d{2}-\d{2}$/)) return [];
   const [y, m, d] = firstDate.split("-").map(Number);
@@ -95,7 +95,7 @@ export function PaychecksTab({
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<PaycheckRow | null>(null);
 
-  // mode: "single" | "biweekly" (biweekly uniquement Ã  l'ajout)
+  // mode: "single" | "biweekly" (biweekly uniquement à l'ajout)
   const [mode, setMode] = useState<"single" | "biweekly">("biweekly");
 
   // formulaire paie unique
@@ -111,7 +111,7 @@ export function PaychecksTab({
 
   const [error, setError] = useState<string | null>(null);
 
-  // dates bi-hebdo calculÃ©es
+  // dates bi-hebdo calculées
   const biDates = mode === "biweekly" ? getBiweeklyDates(biFirstDate, year, month) : [];
 
   // Regrouper par membre
@@ -163,14 +163,14 @@ export function PaychecksTab({
     setError(null);
 
     if (mode === "biweekly") {
-      if (biDates.length === 0) { setError("La premiÃ¨re date doit Ãªtre dans le mois affichÃ©."); return; }
+      if (biDates.length === 0) { setError("La première date doit être dans le mois affiché."); return; }
       const entries = biDates.map((d) => ({
         date: d,
         grossAmount: parseFloat(biGrosses[d] || "0"),
         vacationDeduction: parseFloat(biDeductions[d] || "0"),
       }));
       const allValid = entries.every(e => e.grossAmount > 0);
-      if (!allValid) { setError("Veuillez saisir un montant brut pour chaque paie."); return; }
+      if (!allValid) { setError("Veuillez saisir un montant net pour chaque paie."); return; }
       startTransition(async () => {
         const res = await createBiweeklyPaychecks(entries, biTargetUser);
         if (!res.success) setError(res.error);
@@ -195,7 +195,7 @@ export function PaychecksTab({
     });
   }
 
-  // aperÃ§u net (mode unique)
+  // aperçu net (mode unique)
   const grossNum = parseFloat(form.grossAmount || "0");
   const dedNum = parseFloat(form.vacationDeduction || "0");
   const singlePreviewNet =
@@ -203,7 +203,7 @@ export function PaychecksTab({
       ? grossNum - dedNum
       : null;
 
-  // aperÃ§u total net (mode biweekly)
+  // aperçu total net (mode biweekly)
   const biTotalNet =
     biDates.length > 0 && biDates.some(d => parseFloat(biGrosses[d] || "0") > 0)
       ? biDates.reduce((sum, d) => {
@@ -256,13 +256,13 @@ export function PaychecksTab({
                         <p className="font-medium">{formatDateUtil(p.date)}</p>
                       </div>
                       <div>
-                        <span className="text-muted-foreground text-xs">Brut</span>
+                        <span className="text-muted-foreground text-xs">Net</span>
                         <p>{fmtCur(p.grossAmount)}</p>
                       </div>
                       <div>
-                        <span className="text-muted-foreground text-xs">DÃ©d. vacances</span>
+                        <span className="text-muted-foreground text-xs">Déd. vacances</span>
                         <p className={p.vacationDeduction > 0 ? "text-orange-600" : ""}>
-                          {p.vacationDeduction > 0 ? `âˆ’ ${fmtCur(p.vacationDeduction)}` : "â€”"}
+                          {p.vacationDeduction > 0 ? `− ${fmtCur(p.vacationDeduction)}` : "—"}
                         </p>
                       </div>
                       <div>
@@ -301,7 +301,7 @@ export function PaychecksTab({
             </DialogTitle>
           </DialogHeader>
 
-          {/* Toggle mode â€” uniquement Ã  l'ajout */}
+          {/* Toggle mode — uniquement à l'ajout */}
           {!editing && (
             <div className="flex rounded-lg border overflow-hidden text-sm">
               <button
@@ -354,7 +354,7 @@ export function PaychecksTab({
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="bi-first">Date de la 1Ã¨re paie du mois</Label>
+                  <Label htmlFor="bi-first">Date de la 1ère paie du mois</Label>
                   <Input
                     id="bi-first"
                     type="date"
@@ -365,15 +365,15 @@ export function PaychecksTab({
                     required
                   />
                   <p className="text-xs text-muted-foreground">
-                    Les paies suivantes seront gÃ©nÃ©rÃ©es automatiquement toutes les 2 semaines.
+                    Les paies suivantes seront générées automatiquement toutes les 2 semaines.
                   </p>
                 </div>
 
-                {/* AperÃ§u des dates gÃ©nÃ©rÃ©es */}
+                {/* Aperçu des dates générées */}
                 {biDates.length > 0 && (
                   <div className="space-y-2">
                     <Label>
-                      {biDates.length} paie{biDates.length > 1 ? "s" : ""} prÃ©vue{biDates.length > 1 ? "s" : ""}
+                      {biDates.length} paie{biDates.length > 1 ? "s" : ""} prévue{biDates.length > 1 ? "s" : ""}
                     </Label>
                     <div className="rounded-lg border divide-y bg-gray-50">
                       {biDates.map((d) => {
@@ -386,7 +386,7 @@ export function PaychecksTab({
                             <span className="font-medium">{formatDateUtil(d)}</span>
                             <div className="flex items-center gap-2">
                               <div className="flex items-center gap-1 flex-1">
-                                <span className="text-muted-foreground text-xs shrink-0">Brut $</span>
+                                <span className="text-muted-foreground text-xs shrink-0">Net $</span>
                                 <Input
                                   type="number"
                                   min="0"
@@ -400,7 +400,7 @@ export function PaychecksTab({
                                 />
                               </div>
                               <div className="flex items-center gap-1 flex-1">
-                                <span className="text-muted-foreground text-xs shrink-0">DÃ©d. vac. $</span>
+                                <span className="text-muted-foreground text-xs shrink-0">Déd. vac. $</span>
                               <Input
                                 type="number"
                                 min="0"
@@ -436,7 +436,7 @@ export function PaychecksTab({
 
                 {biFirstDate && biDates.length === 0 && (
                   <p className="text-sm text-destructive">
-                    La premiÃ¨re date doit Ãªtre dans le mois affichÃ©.
+                    La première date doit être dans le mois affiché.
                   </p>
                 )}
               </>
@@ -474,7 +474,7 @@ export function PaychecksTab({
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="gross">Montant brut ($)</Label>
+                  <Label htmlFor="gross">Montant net ($)</Label>
                   <Input
                     id="gross"
                     type="number"
@@ -489,7 +489,7 @@ export function PaychecksTab({
 
                 <div className="space-y-2">
                   <Label htmlFor="vac">
-                    DÃ©duction vacances ($){" "}
+                    Déduction vacances ($){" "}
                     <span className="text-muted-foreground font-normal text-xs">(optionnel)</span>
                   </Label>
                   <Input
@@ -505,7 +505,7 @@ export function PaychecksTab({
 
                 {singlePreviewNet !== null && (
                   <div className="bg-green-50 border border-green-200 rounded-md p-3 text-sm">
-                    <span className="text-muted-foreground">Net calculÃ© : </span>
+                    <span className="text-muted-foreground">Net calculé : </span>
                     <span className="font-semibold text-green-700">{fmtCur(singlePreviewNet)}</span>
                   </div>
                 )}
@@ -518,11 +518,11 @@ export function PaychecksTab({
               </Button>
               <Button type="submit" disabled={isPending}>
                 {isPending
-                  ? "â€¦"
+                  ? "…"
                   : editing
                   ? "Sauvegarder"
                   : mode === "biweekly"
-                  ? `CrÃ©er ${biDates.length > 0 ? biDates.length : ""} paie${biDates.length !== 1 ? "s" : ""}`
+                  ? `Créer ${biDates.length > 0 ? biDates.length : ""} paie${biDates.length !== 1 ? "s" : ""}`
                   : "Ajouter"}
               </Button>
             </DialogFooter>
