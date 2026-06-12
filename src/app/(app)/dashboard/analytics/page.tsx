@@ -17,10 +17,31 @@ export const metadata = {
 };
 
 async function AnalyticsContent() {
-  const [analyticsData, budgets] = await Promise.all([
-    getAnalyticsData(),
-    getCategoryBudgets(),
-  ]);
+  let analyticsData: Awaited<ReturnType<typeof getAnalyticsData>>;
+  let budgets: Awaited<ReturnType<typeof getCategoryBudgets>>;
+
+  try {
+    [analyticsData, budgets] = await Promise.all([
+      getAnalyticsData(),
+      getCategoryBudgets(),
+    ]);
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    return (
+      <main className="space-y-6">
+        <Link href="/dashboard">
+          <Button variant="ghost" size="sm">
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Retour au tableau de bord
+          </Button>
+        </Link>
+        <div className="rounded-lg border border-red-200 bg-red-50 p-6">
+          <h2 className="text-lg font-semibold text-red-800 mb-2">Erreur de chargement</h2>
+          <p className="text-red-600 font-mono text-sm">{message}</p>
+        </div>
+      </main>
+    );
+  }
 
   const budgetMap = budgets.reduce(
     (acc, b) => {
