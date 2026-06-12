@@ -3,6 +3,7 @@ import Link from "next/link";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { getMonthData } from "@/actions/month-actions";
+import { getActiveHouseholdId } from "@/lib/active-household";
 import {
   Card,
   CardContent,
@@ -17,6 +18,7 @@ import { formatCurrency, formatPercent } from "@/lib/calc";
 import { currentMonthSlug, formatMonthLabel, prevMonthSlug, nextMonthSlug } from "@/lib/utils";
 import { ArrowLeft, ArrowRight, TrendingUp, Wallet, PiggyBank, AlertTriangle } from "lucide-react";
 import { MonthSelectorButtons } from "@/components/dashboard/month-selector-buttons";
+import { OnboardingModal } from "@/components/onboarding/onboarding-modal";
 
 interface DashboardPageProps {
   searchParams: Promise<{ month?: string }>;
@@ -36,11 +38,15 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
     redirect("/dashboard");
   }
 
+  const householdId = await getActiveHouseholdId(session.user.id) ?? "";
+  const showOnboarding = monthData.totalRevenues === 0 && monthData.totalExpenses === 0;
+
   const { year, month, totalExpenses, totalRevenues, contributions, warning } = monthData;
   const monthLabel = formatMonthLabel(year, month);
 
   return (
     <div className="space-y-6">
+      {showOnboarding && <OnboardingModal householdId={householdId} monthSlug={slug} />}
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>

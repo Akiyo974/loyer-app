@@ -1,6 +1,9 @@
 import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
+  const now = new Date();
+  const currentMonthSlug = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+
   return {
     name: "Foyer — Gestion des dépenses",
     short_name: "Foyer",
@@ -29,6 +32,22 @@ export default function manifest(): MetadataRoute.Manifest {
         sizes: "any",
         type: "image/svg+xml",
         purpose: "maskable",
+      },
+    ],
+    shortcuts: [
+      {
+        name: "Mois en cours",
+        short_name: "Ce mois",
+        description: "Voir le détail du mois",
+        url: `/month/${currentMonthSlug}`,
+        icons: [{ src: "/api/icon/192", sizes: "192x192" }],
+      },
+      {
+        name: "Tableau de bord",
+        short_name: "Dashboard",
+        description: "Vue d'ensemble du foyer",
+        url: "/dashboard",
+        icons: [{ src: "/api/icon/192", sizes: "192x192" }],
       },
     ],
   };

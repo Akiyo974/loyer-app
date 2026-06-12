@@ -1,6 +1,6 @@
 ﻿"use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import type { MonthData, PaycheckRow } from "@/lib/types";
 import {
@@ -44,6 +44,26 @@ function toDateString(d: Date): string {
   const mm = String(d.getMonth() + 1).padStart(2, "0");
   const dd = String(d.getDate()).padStart(2, "0");
   return `${d.getFullYear()}-${mm}-${dd}`;
+}
+
+// ---- Modèles de paie (localStorage) ----
+
+function readTemplate(userId: string): { grossAmount: string; vacationDeduction: string } | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = localStorage.getItem(`paycheck-template-${userId}`);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (typeof parsed.grossAmount === "string" && typeof parsed.vacationDeduction === "string") return parsed;
+  } catch {}
+  return null;
+}
+
+function writeTemplate(userId: string, grossAmount: string, vacationDeduction: string) {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.setItem(`paycheck-template-${userId}`, JSON.stringify({ grossAmount, vacationDeduction }));
+  } catch {}
 }
 
 /** Génère toutes les dates bi-hebdomadaires du mois à partir de firstDate. */
@@ -114,6 +134,38 @@ export function PaychecksTab({
   // dates bi-hebdo calculées
   const biDates = mode === "biweekly" ? getBiweeklyDates(biFirstDate, year, month) : [];
 
+  // ---- Modèle : pré-remplissage bi-hebdomadaire ----
+  const biDatesKey = biDates.join(",");
+  useEffect(() => {
+    if (!dialogOpen || mode !== "biweekly") return;
+    const tpl = readTemplate(biTargetUser);
+    if (!tpl) return;
+    setBiGrosses((prev) => {
+      const next = { ...prev };
+      biDates.forEach((d) => { if (!next[d]) next[d] = tpl.grossAmount; });
+      return next;
+    });
+    setBiDeductions((prev) => {
+      const next = { ...prev };
+      biDates.forEach((d) => { if (!next[d] || next[d] === "0") next[d] = tpl.vacationDeduction; });
+      return next;
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [biTargetUser, biDatesKey, dialogOpen, mode]);
+
+  // ---- Modèle : pré-remplissage paie unique ----
+  useEffect(() => {
+    if (!dialogOpen || mode !== "single" || editing) return;
+    const tpl = readTemplate(form.targetUserId);
+    if (!tpl) return;
+    setForm((f) => ({
+      ...f,
+      grossAmount: f.grossAmount || tpl.grossAmount,
+      vacationDeduction: (!f.vacationDeduction || f.vacationDeduction === "0") ? tpl.vacationDeduction : f.vacationDeduction,
+    }));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [form.targetUserId, dialogOpen, mode, editing?.id]);
+
   // Regrouper par membre
   const byMember = members.map((m) => ({
     member: m,
@@ -174,7 +226,12 @@ export function PaychecksTab({
       startTransition(async () => {
         const res = await createBiweeklyPaychecks(entries, biTargetUser);
         if (!res.success) setError(res.error);
-        else { setDialogOpen(false); router.refresh(); }
+        else {
+          // Mémoriser le modèle (premier montant non nul)
+          const first = entries[0];
+          if (first) writeTemplate(biTargetUser, String(first.grossAmount), String(first.vacationDeduction));
+          setDialogOpen(false); router.refresh();
+        }
       });
       return;
     }
@@ -191,7 +248,10 @@ export function PaychecksTab({
         ? await updatePaycheck(editing.id, input)
         : await createPaycheck(input, form.targetUserId);
       if (!res.success) setError(res.error);
-      else { setDialogOpen(false); router.refresh(); }
+      else {
+        if (!editing) writeTemplate(form.targetUserId, form.grossAmount, form.vacationDeduction);
+        setDialogOpen(false); router.refresh();
+      }
     });
   }
 

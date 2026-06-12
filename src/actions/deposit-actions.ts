@@ -14,13 +14,14 @@ import { DepositSchema, type DepositInput } from "@/lib/validations";
 import { requireHouseholdMember, getOrCreateMonth } from "@/actions/helpers";
 import { parseMonthSlug } from "@/lib/utils";
 import type { ActionResult } from "@/actions/auth-actions";
+import { logAuditAction } from "@/actions/audit-actions";
 
 /** Enregistre un virement du membre courant vers le compte commun. */
 export async function createDeposit(
   monthSlug: string,
   input: DepositInput
 ): Promise<ActionResult<{ id: string }>> {
-  const { householdId, userId } = await requireHouseholdMember();
+  const { householdId, userId, member } = await requireHouseholdMember();
 
   const parsed = DepositSchema.safeParse(input);
   if (!parsed.success) {
@@ -47,6 +48,8 @@ export async function createDeposit(
     },
   });
 
+  void logAuditAction(householdId, userId, member.displayName, "CREATED", "deposit", deposit.id, `Dépôt · ${parsed.data.amount.toFixed(2)}$`, monthSlug);
+
   revalidatePath(`/month/${monthSlug}`);
   revalidatePath("/dashboard");
 
@@ -58,7 +61,7 @@ export async function updateDeposit(
   depositId: string,
   input: DepositInput
 ): Promise<ActionResult> {
-  const { householdId } = await requireHouseholdMember();
+  const { householdId, userId, member } = await requireHouseholdMember();
 
   const parsed = DepositSchema.safeParse(input);
   if (!parsed.success) {
@@ -83,6 +86,7 @@ export async function updateDeposit(
   });
 
   const slug = `${existing.month.year}-${String(existing.month.month).padStart(2, "0")}`;
+  void logAuditAction(householdId, userId, member.displayName, "UPDATED", "deposit", depositId, `Dépôt · ${parsed.data.amount.toFixed(2)}$`, slug);
   revalidatePath(`/month/${slug}`);
   revalidatePath("/dashboard");
 
@@ -91,7 +95,7 @@ export async function updateDeposit(
 
 /** Supprime un dépôt. Vérifie l'appartenance au foyer. */
 export async function deleteDeposit(depositId: string): Promise<ActionResult> {
-  const { householdId } = await requireHouseholdMember();
+  const { householdId, userId, member } = await requireHouseholdMember();
 
   const existing = await prisma.deposit.findFirst({
     where: { id: depositId, householdId },
@@ -104,6 +108,7 @@ export async function deleteDeposit(depositId: string): Promise<ActionResult> {
   await prisma.deposit.delete({ where: { id: depositId } });
 
   const slug = `${existing.month.year}-${String(existing.month.month).padStart(2, "0")}`;
+  void logAuditAction(householdId, userId, member.displayName, "DELETED", "deposit", depositId, `Dépôt · ${existing.amount}$`, slug);
   revalidatePath(`/month/${slug}`);
   revalidatePath("/dashboard");
 

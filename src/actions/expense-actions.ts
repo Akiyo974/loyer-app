@@ -13,13 +13,14 @@ import { ExpenseSchema, type ExpenseInput } from "@/lib/validations";
 import { requireHouseholdMember, getOrCreateMonth } from "@/actions/helpers";
 import { parseMonthSlug } from "@/lib/utils";
 import type { ActionResult } from "@/actions/auth-actions";
+import { logAuditAction } from "@/actions/audit-actions";
 
 /** Crée une dépense pour le mois `monthSlug` (crée le mois si absent). */
 export async function createExpense(
   monthSlug: string,
   input: ExpenseInput
 ): Promise<ActionResult<{ id: string }>> {
-  const { householdId } = await requireHouseholdMember();
+  const { householdId, userId, member } = await requireHouseholdMember();
 
   const parsed = ExpenseSchema.safeParse(input);
   if (!parsed.success) {
@@ -43,6 +44,8 @@ export async function createExpense(
     },
   });
 
+  void logAuditAction(householdId, userId, member.displayName, "CREATED", "expense", expense.id, `${parsed.data.label} · ${parsed.data.amount.toFixed(2)}$`, monthSlug);
+
   revalidatePath(`/month/${monthSlug}`);
   revalidatePath("/dashboard");
 
@@ -54,7 +57,7 @@ export async function updateExpense(
   expenseId: string,
   input: ExpenseInput
 ): Promise<ActionResult> {
-  const { householdId } = await requireHouseholdMember();
+  const { householdId, userId, member } = await requireHouseholdMember();
 
   const parsed = ExpenseSchema.safeParse(input);
   if (!parsed.success) {
@@ -75,6 +78,8 @@ export async function updateExpense(
   });
 
   const slug = `${existing.month.year}-${String(existing.month.month).padStart(2, "0")}`;
+  void logAuditAction(householdId, userId, member.displayName, "UPDATED", "expense", expenseId, `${parsed.data.label} · ${parsed.data.amount.toFixed(2)}$`, slug);
+
   revalidatePath(`/month/${slug}`);
   revalidatePath("/dashboard");
 
@@ -83,7 +88,7 @@ export async function updateExpense(
 
 /** Supprime une dépense. Vérifie l'appartenance au foyer. */
 export async function deleteExpense(expenseId: string): Promise<ActionResult> {
-  const { householdId } = await requireHouseholdMember();
+  const { householdId, userId, member } = await requireHouseholdMember();
 
   const existing = await prisma.expense.findFirst({
     where: { id: expenseId, householdId },
@@ -96,6 +101,8 @@ export async function deleteExpense(expenseId: string): Promise<ActionResult> {
   await prisma.expense.delete({ where: { id: expenseId } });
 
   const slug = `${existing.month.year}-${String(existing.month.month).padStart(2, "0")}`;
+  void logAuditAction(householdId, userId, member.displayName, "DELETED", "expense", expenseId, `${existing.label} · ${existing.amount}$`, slug);
+
   revalidatePath(`/month/${slug}`);
   revalidatePath("/dashboard");
 

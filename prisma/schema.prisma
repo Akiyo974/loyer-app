@@ -27,7 +27,6 @@ model User {
   paychecks        Paycheck[]
   deposits        Deposit[]
   expenses        Expense[]        @relation("PaidByExpenses")
-  reelRecipes     ReelRecipe[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -80,9 +79,9 @@ model Household {
   expenses         Expense[]
   deposits         Deposit[]
   paychecks        Paycheck[]
-  reelRecipes      ReelRecipe[]
   categoryBudgets  CategoryBudget[]
   alerts           Alert[]
+  auditLogs        AuditLog[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -187,29 +186,6 @@ model Deposit {
   @@index([householdId, monthId, userId])
 }
 
-// ---- Reel Recipes ----
-model ReelRecipe {
-  id            String   @id @default(cuid())
-  householdId   String
-  createdById   String
-  reelUrl       String
-  lastNotes     String?
-  recipeTitle   String?
-  recipeJson    Json?
-  thumbnailPath String?
-  lastStatus    String   @default("success")
-  hitCount      Int      @default(1)
-
-  household Household @relation(fields: [householdId], references: [id], onDelete: Cascade)
-  createdBy User      @relation(fields: [createdById], references: [id], onDelete: Cascade)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@unique([householdId, reelUrl])
-  @@index([householdId, updatedAt])
-}
-
 // ---- Category Budgets (limites mensuelles par catégorie) ----
 model CategoryBudget {
   id             String @id @default(cuid())
@@ -230,8 +206,8 @@ model CategoryBudget {
 model Alert {
   id            String    @id @default(cuid())
   householdId   String
-  type          String    @default("EXPENSE_SPIKE") // type d'alerte
-  threshold     Float     @default(1.2) // 20% au-dessus de la moyenne
+  type          String    @default("EXPENSE_SPIKE")
+  threshold     Float     @default(1.2)
   enabled       Boolean   @default(true)
   lastTriggered DateTime?
 
@@ -241,5 +217,24 @@ model Alert {
   updatedAt DateTime @updatedAt
 
   @@index([householdId])
+}
+
+// ---- Audit Logs ----
+model AuditLog {
+  id          String  @id @default(cuid())
+  householdId String
+  userId      String
+  userName    String
+  action      String  // "CREATED" | "UPDATED" | "DELETED"
+  entityType  String  // "expense" | "paycheck" | "deposit"
+  entityId    String
+  label       String
+  monthSlug   String?
+
+  household Household @relation(fields: [householdId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@index([householdId, createdAt(sort: Desc)])
 }
 

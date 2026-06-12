@@ -12,6 +12,8 @@ import { PaychecksTab } from "@/components/month/paychecks-tab";
 import { ExpensesTab } from "@/components/month/expenses-tab";
 import { DepositsTab } from "@/components/month/deposits-tab";
 import { BudgetsTab } from "@/components/month/budgets-tab";
+import { CalendarTab } from "@/components/month/calendar-tab";
+import { HistoryTab } from "@/components/month/history-tab";
 import { SummaryCard } from "@/components/month/summary-card";
 import { ExportButton } from "@/components/month/export-button";
 
@@ -104,12 +106,14 @@ export default async function MonthPage({ params, searchParams }: MonthPageProps
 
       {/* Tabs */}
       <Tabs defaultValue={activeTab}>
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-7">
           <TabsTrigger value="summary">Résumé</TabsTrigger>
           <TabsTrigger value="paychecks">Paies</TabsTrigger>
           <TabsTrigger value="expenses">Dépenses</TabsTrigger>
           <TabsTrigger value="deposits">Dépôts</TabsTrigger>
           <TabsTrigger value="budgets">Budgets</TabsTrigger>
+          <TabsTrigger value="calendar">Calendrier</TabsTrigger>
+          <TabsTrigger value="history">Historique</TabsTrigger>
         </TabsList>
 
         <TabsContent value="summary" className="mt-4">
@@ -130,6 +134,14 @@ export default async function MonthPage({ params, searchParams }: MonthPageProps
 
         <TabsContent value="budgets" className="mt-4">
           <BudgetsTab monthData={monthData} categoryBudgets={budgetMap} />
+        </TabsContent>
+
+        <TabsContent value="calendar" className="mt-4">
+          <CalendarTab monthData={monthData} />
+        </TabsContent>
+
+        <TabsContent value="history" className="mt-4">
+          <HistoryTab monthSlug={slug} />
         </TabsContent>
       </Tabs>
     </div>
