@@ -49,6 +49,9 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
         </div>
         <div className="flex items-center gap-2">
           <MonthSelectorButtons currentSlug={slug} />
+          <Button asChild variant="outline" size="sm">
+            <Link href="/dashboard/analytics">Analytics</Link>
+          </Button>
           <Button asChild size="sm">
             <Link href={`/month/${slug}`}>Détail du mois →</Link>
           </Button>

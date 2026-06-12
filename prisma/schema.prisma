@@ -75,12 +75,14 @@ model Household {
   name       String @default("Notre foyer")
   budgetMode String @default("CURRENT") // "CURRENT" ou "SHIFTED" (revenus mois précédent)
 
-  members  HouseholdMember[]
-  months   Month[]
-  expenses Expense[]
-  deposits Deposit[]
-  paychecks Paycheck[]
-  reelRecipes ReelRecipe[]
+  members          HouseholdMember[]
+  months           Month[]
+  expenses         Expense[]
+  deposits         Deposit[]
+  paychecks        Paycheck[]
+  reelRecipes      ReelRecipe[]
+  categoryBudgets  CategoryBudget[]
+  alerts           Alert[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -143,16 +145,17 @@ model Paycheck {
 
 // ---- Expenses (dépenses foyer) ----
 model Expense {
-  id          String      @id @default(cuid())
-  householdId String
-  monthId     String
-  category    String
-  label       String
-  amount      Float
-  type        String
-  paidById    String? // userId optionnel
-  notes       String?
-  isTemplate  Boolean     @default(false) // pour les postes fixes récurrents
+  id              String      @id @default(cuid())
+  householdId     String
+  monthId         String
+  category        String
+  label           String
+  amount          Float
+  type            String
+  paidById        String? // userId optionnel
+  notes           String?
+  isTemplate      Boolean     @default(false) // pour les postes fixes récurrents
+  isAutoRecurring Boolean     @default(false) // copie automatiquement chaque mois
 
   household Household @relation(fields: [householdId], references: [id], onDelete: Cascade)
   month     Month     @relation(fields: [monthId], references: [id], onDelete: Cascade)
@@ -206,3 +209,37 @@ model ReelRecipe {
   @@unique([householdId, reelUrl])
   @@index([householdId, updatedAt])
 }
+
+// ---- Category Budgets (limites mensuelles par catégorie) ----
+model CategoryBudget {
+  id             String @id @default(cuid())
+  householdId    String
+  category       String
+  monthlyBudget  Float  // limite budget mensuel
+
+  household Household @relation(fields: [householdId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([householdId, category])
+  @@index([householdId])
+}
+
+// ---- Alerts (alertes pour dépenses anormales) ----
+model Alert {
+  id            String    @id @default(cuid())
+  householdId   String
+  type          String    @default("EXPENSE_SPIKE") // type d'alerte
+  threshold     Float     @default(1.2) // 20% au-dessus de la moyenne
+  enabled       Boolean   @default(true)
+  lastTriggered DateTime?
+
+  household Household @relation(fields: [householdId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([householdId])
+}
+

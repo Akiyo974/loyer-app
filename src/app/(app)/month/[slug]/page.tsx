@@ -1,6 +1,7 @@
 import { redirect, notFound } from "next/navigation";
 import Link from "next/link";
 import { getMonthData } from "@/actions/month-actions";
+import { getCategoryBudgets } from "@/actions/analytics-actions";
 import { formatMonthLabel, prevMonthSlug, nextMonthSlug } from "@/lib/utils";
 import { formatCurrency, formatPercent } from "@/lib/calc";
 import { Button } from "@/components/ui/button";
@@ -10,6 +11,7 @@ import { AlertTriangle, ChevronLeft, ChevronRight, ArrowLeftRight } from "lucide
 import { PaychecksTab } from "@/components/month/paychecks-tab";
 import { ExpensesTab } from "@/components/month/expenses-tab";
 import { DepositsTab } from "@/components/month/deposits-tab";
+import { BudgetsTab } from "@/components/month/budgets-tab";
 import { SummaryCard } from "@/components/month/summary-card";
 
 interface MonthPageProps {
@@ -28,11 +30,23 @@ export default async function MonthPage({ params, searchParams }: MonthPageProps
   }
 
   let monthData;
+  let budgets;
   try {
-    monthData = await getMonthData(slug);
+    [monthData, budgets] = await Promise.all([
+      getMonthData(slug),
+      getCategoryBudgets(),
+    ]);
   } catch {
     redirect("/dashboard");
   }
+
+  const budgetMap = budgets.reduce(
+    (acc, b) => {
+      acc[b.category] = b.monthlyBudget;
+      return acc;
+    },
+    {} as Record<string, number>
+  );
 
   const { year, month, warning, budgetMode, incomeSlug } = monthData;
   const monthLabel = formatMonthLabel(year, month);
@@ -84,11 +98,12 @@ export default async function MonthPage({ params, searchParams }: MonthPageProps
 
       {/* Tabs */}
       <Tabs defaultValue={activeTab}>
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="summary">Résumé</TabsTrigger>
           <TabsTrigger value="paychecks">Paies</TabsTrigger>
           <TabsTrigger value="expenses">Dépenses</TabsTrigger>
           <TabsTrigger value="deposits">Dépôts</TabsTrigger>
+          <TabsTrigger value="budgets">Budgets</TabsTrigger>
         </TabsList>
 
         <TabsContent value="summary" className="mt-4">
@@ -105,6 +120,10 @@ export default async function MonthPage({ params, searchParams }: MonthPageProps
 
         <TabsContent value="deposits" className="mt-4">
           <DepositsTab monthData={monthData} />
+        </TabsContent>
+
+        <TabsContent value="budgets" className="mt-4">
+          <BudgetsTab monthData={monthData} categoryBudgets={budgetMap} />
         </TabsContent>
       </Tabs>
     </div>
