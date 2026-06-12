@@ -13,6 +13,7 @@ import { ExpensesTab } from "@/components/month/expenses-tab";
 import { DepositsTab } from "@/components/month/deposits-tab";
 import { BudgetsTab } from "@/components/month/budgets-tab";
 import { SummaryCard } from "@/components/month/summary-card";
+import { ExportButton } from "@/components/month/export-button";
 
 interface MonthPageProps {
   params: Promise<{ slug: string }>;
@@ -77,6 +78,7 @@ export default async function MonthPage({ params, searchParams }: MonthPageProps
           <Button variant="outline" size="sm" asChild>
             <Link href="/dashboard">Tableau de bord</Link>
           </Button>
+          <ExportButton slug={slug} />
         </div>
       </div>
 
